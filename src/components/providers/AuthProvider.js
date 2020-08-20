@@ -1,89 +1,23 @@
-import React, {createContext, useReducer} from 'react';
+import React, {createContext, useMemo} from 'react';
 import PropTypes from 'prop-types';
-import {useLazyQuery, useMutation} from '@apollo/react-hooks';
-import gql from 'graphql-tag';
 
+import useGlobalLoading from 'hooks/useGlobalLoading';
 import useNotifications from 'hooks/useNotifications';
 
-import {
-    getToken,
-    getUser,
-    resetPersistence,
-    setToken,
-    setUser,
-} from 'tools/persistValues';
-
-const SIGNUP = gql`
-    mutation SignupMutation($email: String!, $password: String!, $name: String!) {
-        signup(data: {email: $email, password: $password, name: $name}) {
-            token
-        }
-    }
-`;
-
-const LOGIN = gql`
-    query LoginQuery($email: String!, $password: String!) {
-        login(email: $email, password: $password) {
-            token
-        }
-    }
-`;
-
-const INITIAL_STATE = {
-    authenticated: !!getToken(),
-    ssr: true,
-    authenticating: false,
-    error: null,
-    username: getUser(),
-};
+import {APP_INITIAL_STATE} from './app/appInitialState';
 
 const DEFAULT_AUTH_CONTEXT = {
-    login: () => null,
-    logout: () => null,
-    setUsername: () => null,
-    signUp: () => null,
-    ...INITIAL_STATE,
+    handleLoggedIn: () => null,
+    handleLoggedOut: () => null,
+    setAuthenticating: () => null,
+    setError: () => null,
+    ...APP_INITIAL_STATE,
 };
 
 export const AuthContext = createContext(DEFAULT_AUTH_CONTEXT);
 
 const AuthContextProvider = AuthContext.Provider;
 
-function reducer(state, {type, payload = {}}) {
-    const actions = {
-        RESET_STATE: {
-            authenticating: false,
-            authenticated: false,
-            error: null,
-            username: null,
-        },
-        SET_AUTHENTICATED: {
-            ...state,
-            authenticated: true,
-            authenticating: false,
-            error: null,
-        },
-        SET_AUTHENTICATING: {
-            ...INITIAL_STATE,
-            authenticating: true,
-            username: payload.username,
-        },
-        SET_ERROR: {
-            authenticated: false,
-            authenticating: false,
-            error: payload.error,
-            username: null,
-        },
-        SET_USER_RELOGIN: {
-            authenticated: true,
-            authenticating: false,
-            error: null,
-            username: payload.username,
-        },
-    };
-
-    return actions[type] || state;
-}
 /**
 Provider for authentication. Context returns...
 
@@ -102,54 +36,71 @@ Provider for authentication. Context returns...
 <br /><br /><br />
 */
 
-export default function AuthProvider({children}) {
-    const {setNotification} = useNotifications();
-    const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
-    const [loginQuery] = useLazyQuery(LOGIN, {
-        onCompleted: loginConfirm,
-        onError: handleError,
-        ssr: false,
-    });
-    const [signupMutation] = useMutation(SIGNUP, {
-        onCompleted: loginConfirm,
-        onError: handleError,
-    });
+export default function AuthProvider({apolloClient, appActions, appState, children}) {
+    const {setLoading} = useGlobalLoading();
+    const {clearNotification, setNotification, setGraphQLError} = useNotifications();
+    const {appAuthenticated, appAuthenticating, appError, appResetState} = useMemo(
+        () => appActions,
+        [appActions]
+    );
 
-    function login(email, password, callback = () => null) {
-        dispatch({type: 'SET_AUTHENTICATING', payload: {username: email}});
-        loginQuery({variables: {email, password}});
-        setUser(email);
-        callback(state);
+    function resetState() {
+        setLoading(false);
+        appResetState();
     }
 
-    /** Logs out of app */
-    function logout() {
-        resetPersistence();
-        dispatch({type: 'RESET_STATE'});
-        setNotification('You have been successfully logged out');
+    function handleLoggedIn(data) {
+        const {accessToken, name} = data.login || data.signup;
+
+        setLoading(false);
+        appAuthenticated({accessToken, name});
+        setNotification({
+            message: 'You have been successfully logged in.',
+            messageKey: 'loggedIn',
+            ttl: 3000,
+        });
     }
 
-    function signUp(name, email, password) {
-        dispatch({type: 'SET_AUTHENTICATING', payload: {username: email}});
-        signupMutation({variables: {name, email, password}});
+    function setAuthenticating(loading = true) {
+        setLoading(loading);
+        appAuthenticating({authenticating: loading});
     }
 
-    async function loginConfirm(data) {
-        const {token: dataToken} = data.login || data.signup;
-
-        await setToken(dataToken);
-        dispatch({type: 'SET_AUTHENTICATED'});
+    function setError(errorResponse, messagePrefix, ttl) {
+        setLoading(false);
+        appError({payload: {...errorResponse, messagePrefix}});
+        setGraphQLError(errorResponse, {messagePrefix, ttl});
     }
 
-    function handleError(errorResponse) {
-        dispatch({type: 'SET_ERROR', payload: {error: errorResponse}});
+    function handleLoggedOut(success) {
+        const notification = success
+            ? {
+                  message: 'You have been successfully logged out',
+                  messageKey: 'logoutNotification',
+                  ttl: 10000,
+              }
+            : {
+                  message: 'There was a problem logging out. Please try again.',
+                  messageKey: 'logoutError',
+                  type: 'error',
+                  ttl: -1,
+              };
+
+        if (success) {
+            resetState();
+            apolloClient.resetStore();
+        }
+
+        setNotification(notification);
     }
 
     const providerValues = {
-        login,
-        logout,
-        signUp,
-        ...state,
+        clearNotification,
+        handleLoggedIn,
+        handleLoggedOut,
+        setAuthenticating,
+        setError,
+        ...appState,
     };
 
     return (
@@ -158,5 +109,20 @@ export default function AuthProvider({children}) {
 }
 
 AuthProvider.propTypes = {
-    children: PropTypes.node,
+    apolloClient: PropTypes.object,
+    appActions: PropTypes.shape({
+        appAuthenticated: PropTypes.func,
+        appAuthenticating: PropTypes.func,
+        appError: PropTypes.func,
+        appResetState: PropTypes.func,
+    }),
+    appState: PropTypes.shape({
+        accessToken: PropTypes.string,
+        authenticated: PropTypes.bool,
+        authenticating: PropTypes.bool,
+        error: PropTypes.oneOfType([PropTypes.array, PropTypes.object, PropTypes.string]),
+        name: PropTypes.string,
+        ssr: PropTypes.bool,
+    }),
+    children: PropTypes.node.isRequired,
 };

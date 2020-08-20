@@ -7,8 +7,6 @@ import {
 
 import getClassName from 'tools/getClassName';
 
-import './Snackbar.scss';
-
 export const SnackbarAction = MdcSnackbarAction;
 
 export default function Snackbar({className, ...props}) {

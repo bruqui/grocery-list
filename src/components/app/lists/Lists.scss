@@ -1,0 +1,25 @@
+@import '_base';
+
+.lists {
+    min-height: 10rem;
+
+    &__content {
+        padding: $gutter;
+    }
+
+    &__list {
+        display: grid;
+        gap: $gutter $gutter;
+        grid-template-columns: repeat(4, 0.25fr);
+        grid-template-rows: auto;
+        margin-top: $gutter-small;
+    }
+
+    &__section {
+        margin-top: $gutter;
+    }
+
+    &__select-list {
+        width: 100%;
+    }
+}

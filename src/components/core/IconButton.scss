@@ -1,2 +1,16 @@
-@import '_mdc-theme';
-@import "@material/icon-button/mdc-icon-button";
+@import '_colors';
+
+// having to incorporate this extra class to override color
+.mdc-icon-button {
+    &.icon-button {
+        color: $color-primary-light;
+
+        &--on-primary {
+            color: $color-on-primary;
+        }
+
+        &--on-secondary {
+            color: $color-on-secondary;
+        }
+    }
+}

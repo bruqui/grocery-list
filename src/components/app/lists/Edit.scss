@@ -1,0 +1,8 @@
+@import '_base';
+
+.edit {
+    &__delete {
+        margin-bottom: $gutter;
+        width: 100%;
+    }
+}

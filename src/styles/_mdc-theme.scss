@@ -23,4 +23,8 @@ $mdc-theme-error: $color-error;
 $mdc-theme-on-primary: $color-on-primary;
 $mdc-theme-on-secondary: $color-on-secondary;
 $mdc-theme-on-error: $color-on-error;
+$mdc-theme-on-background: $color-on-background;
 $mdc-theme-on-surface: $color-on-surface;
+
+// Other Text colors
+$mdc-theme-text-disabled-on-background: lighten($color-on-background, 40%);

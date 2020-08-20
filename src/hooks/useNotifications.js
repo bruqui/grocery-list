@@ -1,18 +1,44 @@
 import {useContext} from 'react';
 import {NotificationContext} from 'components/providers/NotificationProvider';
 
+import * as errorResponses from 'graphql/lib/error-response-constants';
+
 export default function useNotifications() {
-    const {notification, setNotification: setNotificationContext} = useContext(
+    const {currentNotification, removeNotification, setNotification} = useContext(
         NotificationContext
     );
 
-    function removeNotification() {
-        setNotificationContext(null);
+    function setGraphQLError({graphQLErrors}, {messagePrefix, ttl = -1} = {}) {
+        if (graphQLErrors && graphQLErrors.length) {
+            graphQLErrors.map(({message, ...rest}, index) => {
+                // eslint-disable-next-line import/namespace
+                const graphQLErrorMessage = errorResponses[message] || message;
+                const notificationMessage = messagePrefix
+                    ? `${messagePrefix} ${graphQLErrorMessage}`
+                    : graphQLErrorMessage;
+
+                setNotification({
+                    messageKey: `${message}__${index}`,
+                    type: 'error',
+                    message: notificationMessage,
+                    devMessage: JSON.stringify({message, ...rest}, undefined, 4),
+                    ttl,
+                });
+            });
+        }
     }
 
-    function setNotification(notification) {
-        setNotificationContext(notification);
+    function clearNotification() {
+        if (currentNotification && currentNotification.messageKey) {
+            removeNotification(currentNotification.messageKey);
+        }
     }
 
-    return {notification, removeNotification, setNotification};
+    return {
+        currentNotification,
+        clearNotification,
+        removeNotification,
+        setGraphQLError,
+        setNotification,
+    };
 }

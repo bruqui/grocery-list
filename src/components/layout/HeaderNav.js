@@ -3,10 +3,11 @@ import PropTypes from 'prop-types';
 
 import getClassName from 'tools/getClassName';
 
+// core
 import Icon from 'components/core/Icon';
-import Link from 'components/core/Link';
 import Permissions from 'components/core/Permissions';
-import {SimpleMenu, MenuItem} from 'components/core/Menu';
+import {ListLink, ListItem} from 'components/core/list';
+import {SimpleMenu} from 'components/core/menu';
 
 import './HeaderNav.scss';
 
@@ -21,6 +22,10 @@ export default function HeaderNav({className}) {
             display: 'home',
             to: '/',
         },
+        {
+            display: 'users',
+            to: '/users',
+        },
     ];
 
     function handleIsActive(isActive) {
@@ -30,11 +35,11 @@ export default function HeaderNav({className}) {
     // eslint-disable-next-line
     function renderLink({authenticated, display, to}) {
         const link = (
-            <MenuItem key={display} selected={selected}>
-                <Link getIsActive={handleIsActive} to={to}>
+            <ListItem key={display} selected={selected}>
+                <ListLink getIsActive={handleIsActive} to={to}>
                     {display}
-                </Link>
-            </MenuItem>
+                </ListLink>
+            </ListItem>
         );
 
         return authenticated ? (

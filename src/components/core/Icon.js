@@ -4,8 +4,6 @@ import {Icon as MaterialIcon} from '@rmwc/icon';
 
 import getClassName from 'tools/getClassName';
 
-import './Icon.scss';
-
 export default function Icon({className, icon, onPrimary, onSecondary, ...props}) {
     const [rootClassName] = getClassName({
         className,

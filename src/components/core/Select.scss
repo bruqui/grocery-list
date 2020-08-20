@@ -1,0 +1,7 @@
+.select {
+    &--full-width {
+        .mdc-select__anchor {
+            width: 100%;
+        }
+    }
+}
