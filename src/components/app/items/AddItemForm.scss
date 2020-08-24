@@ -1,0 +1,11 @@
+.add-item-form {
+    display: flex;
+
+    &__field {
+        flex: 1 1 auto;
+    }
+
+    &__button {
+        flex: 0 0 auto;
+    }
+}

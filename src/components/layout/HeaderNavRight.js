@@ -1,17 +1,19 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {SimpleMenu, MenuItem} from '@rmwc/menu';
 
 import getClassName from 'tools/getClassName';
-import useAuth from 'hooks/useAuth';
+import {useAuth, useLogout} from 'components/providers/AuthProvider';
 
-import Icon from 'components/core/Icon';
+import IconButton from 'components/core/IconButton';
+import {SimpleMenu} from 'components/core/menu/';
+import {ListItem, ListLink} from 'components/core/list/';
 import Link from 'components/core/Link';
 
 import './HeaderNavRight.scss';
 
 export default function HeaderNavRight({className}) {
-    const {authenticated, logout, username} = useAuth();
+    const {authenticated, name} = useAuth();
+    const {logout} = useLogout();
     const [rootClassName, getChildClass] = getClassName({
         className,
         rootClass: 'header-nav-right',
@@ -24,21 +26,20 @@ export default function HeaderNavRight({className}) {
 
     function renderLogin() {
         return (
-            <React.Fragment>
+            <div className={getChildClass('links')}>
                 <Link to="/login" className={linkClassName} onPrimary>
                     log in
                 </Link>
                 <Link to="/register" className={linkClassName} onPrimary>
                     sign up
                 </Link>
-            </React.Fragment>
+            </div>
         );
     }
 
     function renderIcon() {
         return (
-            <Icon
-                role="button"
+            <IconButton
                 className={getChildClass('user')}
                 icon="account_circle"
                 onPrimary
@@ -53,26 +54,17 @@ export default function HeaderNavRight({className}) {
                 handle={renderIcon()}
                 style={{minWidth: '200px'}}
             >
-                <MenuItem selected>logged in as {username || ''}</MenuItem>
-                <MenuItem>
-                    <Link
-                        className={linkClassName}
-                        type="areaLink"
-                        onClick={handleLogout}
-                    >
+                <ListItem disabled>logged in as {name || ''}</ListItem>
+                <ListItem>
+                    <ListLink className={linkClassName} onClick={handleLogout}>
                         Logout
-                    </Link>
-                </MenuItem>
-                <MenuItem>
-                    <Link
-                        className={linkClassName}
-                        to="/private/account-profile"
-                        areaLink
-                        button
-                    >
+                    </ListLink>
+                </ListItem>
+                <ListItem>
+                    <ListLink className={linkClassName} to="/account-profile">
                         Profile
-                    </Link>
-                </MenuItem>
+                    </ListLink>
+                </ListItem>
             </SimpleMenu>
         );
     }

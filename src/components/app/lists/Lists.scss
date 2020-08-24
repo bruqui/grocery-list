@@ -1,0 +1,41 @@
+@import '_base';
+
+.lists {
+    min-height: 20rem;
+
+    &__content {
+        overflow-y: scroll;
+        padding: $gutter;
+    }
+
+    &__complete-actions {
+        text-align: center;
+    }
+
+    &__clear-switch {
+        margin: $gutter 0;
+    }
+
+    &__list {
+        display: grid;
+        gap: $gutter $gutter;
+        grid-template-columns: repeat(4, 0.25fr);
+        grid-template-rows: auto;
+        margin-top: $gutter-small;
+    }
+
+    &__section {
+        margin-top: $gutter;
+    }
+
+    &__select-list {
+        width: 100%;
+    }
+
+    @media screen and (min-width: $container-max-width) {
+        border-radius: 4px;
+        box-shadow: 0 2px 1px -1px rgba(0, 0, 0, 0.2), 0 1px 1px 0 rgba(0, 0, 0, 0.14),
+            0 1px 3px 0 rgba(0, 0, 0, 0.12);
+        margin-top: $gutter;
+    }
+}

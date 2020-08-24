@@ -1,0 +1,34 @@
+@import '_mdc-theme';
+
+// core
+@import '@material/ripple/common';
+@import '@material/ripple/mdc-ripple';
+@import '@material/ripple/mixins';
+@import '@material/form-field/mdc-form-field';
+@import '@material/list/mdc-list';
+@import '@material/menu/mdc-menu';
+@import '@material/menu-surface/mdc-menu-surface';
+
+// components
+@import '@material/button/mdc-button';
+@import '@material/elevation/mdc-elevation';
+@import '@material/icon-button/mdc-icon-button';
+@import '@material/react-material-icon/index';
+@import '@material/select/mdc-select';
+@import '@material/snackbar/mdc-snackbar';
+@import '@material/switch/mdc-switch';
+@import '@material/tab-bar/mdc-tab-bar';
+@import '@material/tab-indicator/mdc-tab-indicator';
+@import '@material/tab-scroller/mdc-tab-scroller';
+@import '@material/tab/mdc-tab';
+@import '@material/textfield/mdc-text-field';
+
+.material-icons--ripple-surface {
+    @include mdc-ripple-surface;
+    @include mdc-ripple-radius-bounded;
+    @include mdc-states;
+}
+
+.mdc-theme--text-disabled-on-background {
+    color: $mdc-theme-text-disabled-on-background;
+}

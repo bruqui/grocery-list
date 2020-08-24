@@ -1,16 +1,7 @@
-const AUTH_TOKEN = 'id';
 const USER = 'user';
 
 function hasLocalStorage() {
     return typeof localStorage === 'object';
-}
-
-export function getToken() {
-    return hasLocalStorage() ? localStorage.getItem(AUTH_TOKEN) : null;
-}
-
-export function setToken(token) {
-    return hasLocalStorage() ? localStorage.setItem(AUTH_TOKEN, token) : null;
 }
 
 export function setUser(user) {
@@ -23,7 +14,6 @@ export function getUser() {
 
 export async function resetPersistence() {
     if (hasLocalStorage()) {
-        localStorage.removeItem(AUTH_TOKEN);
         localStorage.removeItem(USER);
     }
 }

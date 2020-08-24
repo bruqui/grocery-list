@@ -1,0 +1,9 @@
+@import '_colors';
+
+.item-checkbox {
+    color: #ececec !important;
+
+    &--purchased {
+        color: $color-primary !important;
+    }
+}

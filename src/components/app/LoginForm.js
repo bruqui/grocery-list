@@ -1,30 +1,98 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
+import gql from 'graphql-tag';
 import {useRouter} from 'next/router';
-import {CircularProgress} from '@rmwc/circular-progress';
 import {includes} from 'lodash';
 import {useForm} from 'react-hook-form';
+import {useMutation} from '@apollo/react-hooks';
 
 import getClassName from 'tools/getClassName';
-import useAuth from 'hooks/useAuth';
+import {required} from 'tools/fieldErrors';
+import {ALL_LISTS} from 'components/app/lists/Lists';
+import {useAuth} from 'components/providers/AuthProvider';
 
-import Button from '../core/Button';
-import TextField from '../core/TextField';
+import Button from 'components/core/Button';
+import LoadingSpinner from 'components/core/LoadingSpinner';
+import TextField from 'components/core/TextField';
 import SEO from './SEO';
-import ErrorMessage from '../core/ErrorMessage';
 
 import './LoginForm.scss';
 
-const fieldErrors = {
-    required: 'This field is required.',
-};
+const LOGIN = gql`
+    mutation LOGIN($email: String!, $password: String!, $appPassword: String!) {
+        login(email: $email, password: $password, appPassword: $appPassword) {
+            accessToken
+            userId
+            name
+        }
+    }
+`;
 
-export default function LoginForm({path}) {
+const SIGNUP = gql`
+    mutation SIGNUP(
+        $email: String!
+        $password: String!
+        $name: String!
+        $appPassword: String!
+    ) {
+        signup(
+            input: {
+                email: $email
+                name: $name
+                password: $password
+                appPassword: $appPassword
+            }
+        ) {
+            accessToken
+            userId
+            name
+        }
+    }
+`;
+
+export default function LoginForm({path, register}) {
     const router = useRouter();
-    const [shouldLogin, setShouldLogin] = useState(!includes(path, 'register'));
-    const {authenticated, authenticating, error, login, signUp} = useAuth();
-    const {register, handleSubmit, errors, getValues} = useForm();
+    const [registering, setRegistering] = useState(register);
+    const [mutation, setMutation] = useState(register ? SIGNUP : LOGIN);
+    const {
+        authenticated,
+        authenticating,
+        clearNotification,
+        handleLoggedIn,
+        setAuthenticating,
+        setError,
+    } = useAuth();
+    const [loginMutation] = useMutation(mutation, {
+        onCompleted: handleLoggedIn,
+        onError: handleError,
+        refetchQueries: [{query: ALL_LISTS}],
+    });
+    const {
+        register: fieldRegister,
+        handleSubmit,
+        errors: fieldErrors,
+        getValues,
+    } = useForm();
+    const getFieldProps = useCallback(
+        ({inputRef, label, name, ...fieldProps}) => {
+            const defaultProps = {
+                disabled: authenticating,
+                fieldError: fieldErrors[name],
+                id: `login_${name}`,
+                inputRef: inputRef || fieldRegister({required}),
+                label: label || name,
+                name,
+            };
 
+            return {
+                ...defaultProps,
+                ...fieldProps,
+            };
+        },
+        [authenticating, fieldErrors, required, fieldRegister]
+    );
+
+    // Go to home page once logged in and not on a page with private in the url path.
     useEffect(() => {
         if (!authenticating && authenticated && !includes(path, 'private')) {
             router.push('/');
@@ -39,17 +107,25 @@ export default function LoginForm({path}) {
             : 'Passwords do not match.';
     }
 
-    function handleOnSubmit({email, password, name}) {
-        if (shouldLogin) {
-            login(email, password);
-        } else {
-            signUp(name, email, password);
-        }
+    function handleError(errorResponse) {
+        setError(
+            errorResponse,
+            `There was a problem ${registering ? 'signing up' : 'logging in'}.`
+        );
+    }
+
+    function handleOnSubmit({confirmPassword, ...variables}) {
+        clearNotification();
+        loginMutation({variables});
+        setAuthenticating();
     }
 
     function handleLoginTypeClick(event) {
+        const newRegistering = !registering;
+
         event.preventDefault();
-        setShouldLogin(!shouldLogin);
+        setRegistering(newRegistering);
+        setMutation(newRegistering ? SIGNUP : LOGIN);
     }
 
     const [rootClassName, getChildClass] = getClassName({rootClass: 'login-form'});
@@ -57,67 +133,62 @@ export default function LoginForm({path}) {
 
     return (
         <React.Fragment>
-            <SEO title={shouldLogin ? 'Login' : 'Sign Up'} />
+            <SEO title={registering ? 'Sign Up' : 'Login'} />
             <form
                 className={rootClassName}
                 onSubmit={handleSubmit(handleOnSubmit)}
                 name="login"
             >
-                {!shouldLogin && (
-                    <TextField
-                        disabled={authenticating}
-                        id="loginName"
-                        name="name"
-                        label="Name"
-                        fieldError={errors.name}
-                        inputRef={register({required: fieldErrors.required})}
-                    />
+                {registering && (
+                    <TextField {...getFieldProps({name: 'name', label: 'Name'})} />
                 )}
                 <TextField
-                    disabled={authenticating}
-                    id="loginEmail"
-                    name="email"
-                    label="Email"
-                    inputRef={register({required: fieldErrors.required})}
-                    fieldError={errors.email}
+                    {...getFieldProps({name: 'email', label: 'Email'})}
+                    defaultValue="user@name.com"
                 />
                 <TextField
-                    disabled={authenticating}
-                    fieldError={errors.password}
-                    id="loginPassword"
-                    inputRef={register({required: fieldErrors.required})}
-                    label="Password"
-                    name="password"
-                    type="password"
+                    {...getFieldProps({
+                        name: 'password',
+                        label: 'Password',
+                        type: 'password',
+                    })}
+                    defaultValue="password"
                 />
-                {!shouldLogin && (
+                {registering && (
                     <TextField
-                        disabled={authenticating}
-                        fieldError={errors.confirmPassword}
-                        id="loginConfirmPassword"
-                        inputRef={register({
-                            required: fieldErrors.required,
-                            validate: matchesPassword,
+                        {...getFieldProps({
+                            name: 'confirmPassword',
+                            label: 'Confirm Password',
+                            inputRef: fieldRegister({
+                                required,
+                                validate: matchesPassword,
+                            }),
+                            type: 'password',
                         })}
-                        label="Confirm Password"
-                        name="confirmPassword"
-                        type="password"
                     />
                 )}
+                <TextField
+                    {...getFieldProps({
+                        name: 'appPassword',
+                        label: 'Application Password',
+                        type: 'password',
+                    })}
+                    defaultValue="Psytrance4eva"
+                />
+
                 <Button
                     disabled={authenticating}
                     className={buttonClass}
-                    icon={authenticating && <CircularProgress size="xsmall" />}
+                    icon={authenticating && <LoadingSpinner small />}
                     raised
                     type="submit"
                 >
-                    {shouldLogin ? 'login' : 'create account'}
+                    {registering ? 'create account' : 'login'}
                 </Button>
-                <Button className={buttonClass} onClick={handleLoginTypeClick} outlined>
-                    {shouldLogin ? 'go to sign up page' : 'go to login page'}
+                <Button className={buttonClass} onClick={handleLoginTypeClick}>
+                    {registering ? 'already have an account' : 'create an account'}
                 </Button>
             </form>
-            {error && <ErrorMessage error={error} />}
         </React.Fragment>
     );
 }
@@ -125,4 +196,9 @@ export default function LoginForm({path}) {
 LoginForm.propTypes = {
     /** path from router */
     path: PropTypes.string,
+    register: PropTypes.bool,
+};
+
+LoginForm.defaultProps = {
+    register: false,
 };

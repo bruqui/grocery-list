@@ -1,0 +1,7 @@
+@import '_base';
+
+.user-card {
+    &__details {
+        padding: $gutter-small;
+    }
+}
