@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import getClassName from 'tools/getClassName';
-import useGlobalLoading from 'hooks/useGlobalLoading';
+import {useGlobalLoading} from 'components/providers/LoadingProvider';
 
 // core
 import Loading from 'components/core/Loading';

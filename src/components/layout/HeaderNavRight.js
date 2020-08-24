@@ -2,8 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import getClassName from 'tools/getClassName';
-import useAuth from 'hooks/useAuth';
-import useLogout from 'hooks/useLogout';
+import {useAuth, useLogout} from 'components/providers/AuthProvider';
 
 import IconButton from 'components/core/IconButton';
 import {SimpleMenu} from 'components/core/menu/';

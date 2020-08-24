@@ -4,12 +4,14 @@ export default function reducer(state, {type, payload = {}}) {
     const actions = {
         RESET_STATE: APP_INITIAL_STATE,
         SET_AUTHENTICATED: {
-            authInitialized: payload.authInitialized || state.authInitialized,
             accessToken: payload.accessToken,
             authenticated: !!payload.accessToken,
             authenticating: false,
+            authInitialized: payload.authInitialized || state.authInitialized,
             error: null,
+            loggedOut: false,
             name: payload.name,
+            userId: payload.userId,
         },
         SET_AUTHENTICATING: {
             ...APP_INITIAL_STATE,
@@ -18,9 +20,13 @@ export default function reducer(state, {type, payload = {}}) {
             authenticated: state.authenticated,
         },
         SET_ERROR: {
-            authenticated: state.authenticated,
             authenticating: false,
             error: payload.error,
+            loggedOut: payload.loggedOut || state.loggedOut,
+        },
+        SET_LOGGED_OUT: {
+            ...APP_INITIAL_STATE,
+            loggedOut: true,
         },
     };
 

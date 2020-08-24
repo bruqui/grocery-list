@@ -1,9 +1,11 @@
 export const APP_INITIAL_STATE = {
-    authInitialized: false,
     accessToken: null,
     authenticated: false,
-    ssr: typeof window === 'undefined',
     authenticating: false,
+    authInitialized: false,
     error: null,
+    loggedOut: false,
     name: null,
+    ssr: typeof window === 'undefined',
+    userId: null,
 };

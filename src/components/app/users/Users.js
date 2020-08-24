@@ -1,12 +1,11 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import gql from 'graphql-tag';
 import {useQuery} from '@apollo/react-hooks';
 import {chain} from 'lodash';
 
 import getClassName from 'tools/getClassName';
-import useGlobalLoading from 'hooks/useGlobalLoading';
-import useNotifications from 'hooks/useNotifications';
+import {useGlobalLoading} from 'components/providers/LoadingProvider';
 
 import UserCard from './UserCard';
 import Section from 'components/layout/Section';
@@ -28,20 +27,9 @@ export default function Users({className}) {
         className,
         rootClass: 'users',
     });
-    const {setNotification} = useNotifications();
-    const {loading, error, data} = useQuery(ALL_USERS);
-    const {setLoading} = useGlobalLoading();
+    const {loading, data} = useQuery(ALL_USERS);
 
-    useEffect(() => {
-        if (error) {
-            // TODO: Do a better job of the error handling.
-            setNotification(JSON.stringify(error));
-        }
-    }, [error]);
-
-    useEffect(() => {
-        setLoading(loading);
-    }, [loading, setLoading]);
+    useGlobalLoading('usersLoading', loading);
 
     return (
         <Section className={rootClassName}>

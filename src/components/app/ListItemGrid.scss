@@ -1,0 +1,15 @@
+@import '_base';
+
+.list-item-grid {
+    display: grid;
+    column-gap: $gutter;
+    font-size: 1rem;
+    grid-template-columns: 0.1fr 0.5fr 0.4fr;
+    grid-template-rows: auto;
+    width: 95%;
+
+    *:last-child {
+        justify-self: end;
+        text-align: right;
+    }
+}

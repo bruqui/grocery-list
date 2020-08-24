@@ -1,5 +1,6 @@
 import {
     List,
+    ListDivider,
     ListGroup,
     ListGroupSubheader,
     ListItemGraphic,
@@ -15,6 +16,7 @@ import ListLink from './ListLink';
 
 export {
     List,
+    ListDivider,
     ListGroup,
     ListGroupSubheader,
     ListItem,

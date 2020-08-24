@@ -8,7 +8,8 @@ import {useMutation} from '@apollo/react-hooks';
 
 import getClassName from 'tools/getClassName';
 import {required} from 'tools/fieldErrors';
-import useAuth from 'hooks/useAuth';
+import {ALL_LISTS} from 'components/app/lists/Lists';
+import {useAuth} from 'components/providers/AuthProvider';
 
 import Button from 'components/core/Button';
 import LoadingSpinner from 'components/core/LoadingSpinner';
@@ -21,6 +22,7 @@ const LOGIN = gql`
     mutation LOGIN($email: String!, $password: String!, $appPassword: String!) {
         login(email: $email, password: $password, appPassword: $appPassword) {
             accessToken
+            userId
             name
         }
     }
@@ -42,6 +44,7 @@ const SIGNUP = gql`
             }
         ) {
             accessToken
+            userId
             name
         }
     }
@@ -59,9 +62,10 @@ export default function LoginForm({path, register}) {
         setAuthenticating,
         setError,
     } = useAuth();
-    const [signupMutation] = useMutation(mutation, {
+    const [loginMutation] = useMutation(mutation, {
         onCompleted: handleLoggedIn,
         onError: handleError,
+        refetchQueries: [{query: ALL_LISTS}],
     });
     const {
         register: fieldRegister,
@@ -112,7 +116,7 @@ export default function LoginForm({path, register}) {
 
     function handleOnSubmit({confirmPassword, ...variables}) {
         clearNotification();
-        signupMutation({variables});
+        loginMutation({variables});
         setAuthenticating();
     }
 
@@ -138,13 +142,17 @@ export default function LoginForm({path, register}) {
                 {registering && (
                     <TextField {...getFieldProps({name: 'name', label: 'Name'})} />
                 )}
-                <TextField {...getFieldProps({name: 'email', label: 'Email'})} />
+                <TextField
+                    {...getFieldProps({name: 'email', label: 'Email'})}
+                    defaultValue="user@name.com"
+                />
                 <TextField
                     {...getFieldProps({
                         name: 'password',
                         label: 'Password',
                         type: 'password',
                     })}
+                    defaultValue="password"
                 />
                 {registering && (
                     <TextField
@@ -165,6 +173,7 @@ export default function LoginForm({path, register}) {
                         label: 'Application Password',
                         type: 'password',
                     })}
+                    defaultValue="Psytrance4eva"
                 />
 
                 <Button

@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 
 import getClassName from 'tools/getClassName';
@@ -8,18 +8,31 @@ import IconButton from 'components/core/IconButton';
 
 import './ItemCheckbox.scss';
 
-export default function ItemCheckbox({className, itemId, purchased}) {
-    const [rootClassName] = getClassName({className, rootClass: 'item-checkbox'});
-    const [itemChecked, setItemChecked] = useState(purchased);
+export default function ItemCheckbox({
+    checked,
+    className,
+    clearFromNeed,
+    itemId,
+    onClick,
+    value,
+}) {
+    const [rootClassName] = getClassName({
+        className,
+        modifiers: {purchased: checked},
+        rootClass: 'item-checkbox',
+    });
 
-    function handleClick() {
-        setItemChecked(!itemChecked);
+    function handleClick(event) {
+        const purchased = !checked;
+        const need = purchased ? !clearFromNeed : true;
+
+        onClick({itemId: value, need, purchased});
     }
 
     return (
         <IconButton
             className={rootClassName}
-            check={itemChecked}
+            checked={checked}
             icon="check_circle_outline"
             onClick={handleClick}
             onIcon="check_circle"
@@ -28,7 +41,10 @@ export default function ItemCheckbox({className, itemId, purchased}) {
 }
 
 ItemCheckbox.propTypes = {
+    checked: PropTypes.bool,
     className: PropTypes.string,
+    clearFromNeed: PropTypes.bool,
     itemId: PropTypes.string,
-    purchased: PropTypes.bool,
+    onClick: PropTypes.func,
+    value: PropTypes.string,
 };

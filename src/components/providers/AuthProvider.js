@@ -1,8 +1,12 @@
-import React, {createContext, useMemo} from 'react';
+import React, {createContext, useContext, useMemo} from 'react';
 import PropTypes from 'prop-types';
+import gql from 'graphql-tag';
+import {useMutation} from '@apollo/react-hooks';
 
-import useGlobalLoading from 'hooks/useGlobalLoading';
-import useNotifications from 'hooks/useNotifications';
+import {useGlobalLoading} from 'components/providers/LoadingProvider';
+import {useNotifications} from 'components/providers/NotificationProvider';
+import {useErrorHandling} from 'components/providers/ErrorHandlingProvider';
+import {useStorage} from 'components/providers/StorageProvider';
 
 import {APP_INITIAL_STATE} from './app/appInitialState';
 
@@ -14,7 +18,38 @@ const DEFAULT_AUTH_CONTEXT = {
     ...APP_INITIAL_STATE,
 };
 
-export const AuthContext = createContext(DEFAULT_AUTH_CONTEXT);
+const LOGOUT = gql`
+    mutation LOGOUT {
+        logout
+    }
+`;
+
+const AuthContext = createContext(DEFAULT_AUTH_CONTEXT);
+
+export function useAuth() {
+    return useContext(AuthContext);
+}
+
+export function useLogout() {
+    const {handleLoggedOut, setError, authenticated} = useContext(AuthContext);
+    const [logout] = useMutation(LOGOUT, {
+        onCompleted: handleLoggedOut,
+        onError: handleLogoutError,
+    });
+
+    function handleLogoutError(errorResponse) {
+        setError(
+            errorResponse,
+            'There was a problem logging out. Please try again.',
+            'logoutError'
+        );
+    }
+
+    return {
+        authenticated,
+        logout,
+    };
+}
 
 const AuthContextProvider = AuthContext.Provider;
 
@@ -35,25 +70,24 @@ Provider for authentication. Context returns...
 
 <br /><br /><br />
 */
+const loadingKey = 'authProvider';
 
 export default function AuthProvider({apolloClient, appActions, appState, children}) {
-    const {setLoading} = useGlobalLoading();
-    const {clearNotification, setNotification, setGraphQLError} = useNotifications();
-    const {appAuthenticated, appAuthenticating, appError, appResetState} = useMemo(
+    const {clearStorage} = useStorage();
+    const {setLoading} = useGlobalLoading(loadingKey);
+    const {clearNotification, setNotification} = useNotifications();
+    const {setGraphQLError} = useErrorHandling();
+    const {appAuthenticated, appAuthenticating, appError, appLoggedOut} = useMemo(
         () => appActions,
         [appActions]
     );
-
-    function resetState() {
-        setLoading(false);
-        appResetState();
-    }
+    useGlobalLoading();
 
     function handleLoggedIn(data) {
-        const {accessToken, name} = data.login || data.signup;
+        const loginData = data.login || data.signup;
 
-        setLoading(false);
-        appAuthenticated({accessToken, name});
+        setLoading(false, loadingKey);
+        appAuthenticated(loginData);
         setNotification({
             message: 'You have been successfully logged in.',
             messageKey: 'loggedIn',
@@ -62,12 +96,12 @@ export default function AuthProvider({apolloClient, appActions, appState, childr
     }
 
     function setAuthenticating(loading = true) {
-        setLoading(loading);
+        setLoading(loading, loadingKey);
         appAuthenticating({authenticating: loading});
     }
 
     function setError(errorResponse, messagePrefix, ttl) {
-        setLoading(false);
+        setLoading(false, loadingKey);
         appError({payload: {...errorResponse, messagePrefix}});
         setGraphQLError(errorResponse, {messagePrefix, ttl});
     }
@@ -87,8 +121,10 @@ export default function AuthProvider({apolloClient, appActions, appState, childr
               };
 
         if (success) {
-            resetState();
+            appLoggedOut();
+            setLoading(false, loadingKey);
             apolloClient.resetStore();
+            clearStorage();
         }
 
         setNotification(notification);

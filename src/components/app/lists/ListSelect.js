@@ -8,22 +8,34 @@ import Select from 'components/core/Select';
 
 export default function ListSelect({
     className,
-    selectedListId,
-    lists,
+    selectValue,
+    listData,
     setSelectedListId,
-    sharedLists,
+    userId,
 }) {
     const [rootClassName] = getClassName({className, rootClass: 'list-select'});
     const listOptions = useMemo(() => {
         function transformDataToOptions(data) {
-            return data.map(({name, id}) => ({label: name, value: id}));
+            return data.map(({name, id}) => ({
+                label: name,
+                value: id,
+            }));
+        }
+
+        function filterListData(shared) {
+            return listData.filter(({owner: {id}}) => {
+                return shared ? userId !== id : userId === id;
+            });
         }
 
         return [
-            {label: 'My Lists', options: transformDataToOptions(lists)},
-            {label: 'Shared Lists', options: transformDataToOptions(sharedLists)},
+            {label: 'My Lists', options: transformDataToOptions(filterListData())},
+            {
+                label: 'Shared Lists',
+                options: transformDataToOptions(filterListData(true)),
+            },
         ];
-    }, [lists, sharedLists]);
+    }, [listData]);
 
     function handleSelectListChange(event) {
         setSelectedListId(event.currentTarget.value);
@@ -31,21 +43,22 @@ export default function ListSelect({
 
     return (
         <Select
-            defaultValue={selectedListId}
             enhanced
             fullWidth
+            key={selectValue}
             label="Select List"
             onChange={handleSelectListChange}
             options={listOptions}
             rootProps={{className: rootClassName}}
+            value={selectValue}
         />
     );
 }
 
 ListSelect.propTypes = {
     className: PropTypes.string,
-    selectedListId: PropTypes.string,
-    lists: PropTypes.array,
+    selectValue: PropTypes.string,
+    listData: PropTypes.array,
     setSelectedListId: PropTypes.func,
-    sharedLists: PropTypes.array,
+    userId: PropTypes.string,
 };

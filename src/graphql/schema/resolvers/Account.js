@@ -43,7 +43,7 @@ export const accountResolvers = {
         },
         signup: async (parent, {input}, context) => {
             try {
-                await getSignupResponse(input, context);
+                return await getSignupResponse(input, context);
             } catch (error) {
                 return error;
             }

@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import useAuth from 'hooks/useAuth';
+import {useAuth} from 'components/providers/AuthProvider';
 
 export default function Permissions({authenticate, children, renderAlternateView}) {
     const {authenticated, ssr} = useAuth();

@@ -23,6 +23,7 @@ export const AccountDefs = `
     }
     type LoginResponse {
         accessToken: String!
+        userId: String!
         name: String!
     }
     type RefreshResponse {

@@ -5,8 +5,8 @@ type User {
     hash: String!
     salt: String!
     name: String!
-    lists: [List] @relation(onDelete: CASCADE)
-    sharedLists: [ListSharedUsers] @relation(onDelete: CASCADE)
+    lists: [List] @relation(name: "ListUser", onDelete: CASCADE)
+    sharedLists: [List] @relation(name: "SharedLists", onDelete: CASCADE)
     sessions: [UserSession]! @relation(onDelete: CASCADE)
     updatedAt: DateTime! @updatedAt
 }
@@ -24,24 +24,17 @@ type List {
     updatedAt: DateTime! @updatedAt
     collaborated: Boolean! @default(value: false)
     name: String!
-    owner: User! @relation(link: INLINE)
-    sharedWith: [ListSharedUsers] @relation(onDelete: CASCADE)
-    items: [Item] @relation(onDelete: CASCADE)
+    owner: User! @relation(link: INLINE, name: "ListUser")
+    sharedWith: [User]! @relation(link: TABLE, name: "SharedLists", onDelete: CASCADE)
+    items: [Item]! @relation(onDelete: CASCADE)
 }
 
 type Item {
     id: ID! @id
-    need: Boolean! @default(value: false)
     createdAt: DateTime! @createdAt
-    updatedAt: DateTime! @updatedAt
-    name: String!
     list: List! @relation(link: INLINE)
-}
-
-type ListSharedUsers {
-    id: ID! @id
-    createdAt: DateTime! @createdAt
+    name: String!
+    need: Boolean! @default(value: false)
+    purchased: Boolean! @default(value: false)
     updatedAt: DateTime! @updatedAt
-    user: User @relation(link: INLINE)
-    list: List @relation(link: INLINE)
 }

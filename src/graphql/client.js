@@ -2,13 +2,16 @@ import {useMemo} from 'react';
 import fetch from 'isomorphic-unfetch';
 import {ApolloClient} from 'apollo-client';
 import {InMemoryCache} from 'apollo-cache-inmemory';
+import {get} from 'lodash';
 
-let apolloClient, clientAccessToken;
+let apolloClient, currentAccessToken;
 const httpLinkUri = '/api/graphql';
-const wsLinkUri = 'ws://localhost:4000';
 
 /* eslint-disable no-console */
-function createIsomorphLink({appAuthenticated, appAuthenticating, appError}) {
+function createIsomorphLink(
+    {appAuthenticated, appAuthenticating, appError, appLoggedOut},
+    getAppState
+) {
     let isomorphLink;
 
     // For some reason, this specific conditional has to do
@@ -21,14 +24,11 @@ function createIsomorphLink({appAuthenticated, appAuthenticating, appError}) {
         isomorphLink = new SchemaLink({schema, context: {prisma, ssrRequest: true}});
     } else {
         const jwtDecode = require('jwt-decode');
-        const {ApolloLink, split} = require('apollo-link');
+        const {ApolloLink} = require('apollo-link');
         const {createHttpLink} = require('apollo-link-http');
-        const {getMainDefinition} = require('apollo-utilities');
         const {onError} = require('apollo-link-error');
         const {setContext} = require('apollo-link-context');
-        const {SubscriptionClient} = require('subscriptions-transport-ws');
         const {TokenRefreshLink} = require('apollo-link-token-refresh');
-        const {WebSocketLink} = require('apollo-link-ws');
 
         const httpLink = createHttpLink({
             uri: httpLinkUri,
@@ -40,23 +40,30 @@ function createIsomorphLink({appAuthenticated, appAuthenticating, appError}) {
             return {
                 headers: {
                     ...headers,
-                    authorization: clientAccessToken ? `Bearer ${clientAccessToken}` : '',
+                    authorization: currentAccessToken
+                        ? `Bearer ${currentAccessToken}`
+                        : '',
                 },
             };
         });
 
         const errorLink = onError((error) => {
-            appError({error});
+            console.error('APOLLO_ON_ERROR: ', error);
+            const graphqlErrors = get(error, 'graphQLErrors');
+
+            if (graphqlErrors) {
+                appError({graphqlErrors});
+            }
         });
 
         const refreshLink = new TokenRefreshLink({
             accessTokenField: 'accessToken',
             isTokenValidOrUndefined: () => {
                 let isValidOrUndefined = false;
-
-                if (clientAccessToken) {
+                if (currentAccessToken) {
                     try {
-                        const {exp} = jwtDecode(clientAccessToken);
+                        const {exp} = jwtDecode(currentAccessToken);
+
                         if (Date.now() >= exp * 1000) {
                             isValidOrUndefined = false;
                         } else {
@@ -70,54 +77,37 @@ function createIsomorphLink({appAuthenticated, appAuthenticating, appError}) {
                 return isValidOrUndefined;
             },
             fetchAccessToken: () => {
-                return fetch('/api/refresh-token', {credentials: 'same-origin'});
+                return fetch('/api/refresh-token', {
+                    credentials: 'same-origin',
+                }).catch((error) => console.error(error));
             },
             handleResponse: (operation, accessTokenField) => async (response) => {
-                const {accessToken, name} = await response.json();
+                try {
+                    const refreshResponse = await response.json();
 
-                console.log('RREFESHING', {accessToken, name});
-                await appAuthenticated({
-                    accessToken: accessToken,
-                    authInitialized: true,
-                    name,
-                });
+                    console.info('REFRESHING', refreshResponse);
 
-                return {[accessTokenField]: accessToken};
+                    if (refreshResponse.accessToken) {
+                        await appAuthenticated({
+                            authInitialized: true,
+                            ...refreshResponse,
+                        });
+                    } else {
+                        appLoggedOut();
+                    }
+
+                    return {[accessTokenField]: refreshResponse.accessToken};
+                } catch (error) {
+                    return {[accessTokenField]: null};
+                }
             },
             handleFetch: (accessToken) => {
-                clientAccessToken = accessToken;
+                return accessToken;
             },
             handleError: (refreshError) => {
                 appError({error: refreshError, authenticated: false});
             },
         });
-
-        // const wsClient = new SubscriptionClient(
-        //     wsLinkUri,
-        //     {
-        //         reconnect: true,
-        //         options: {
-        //             connectionParams: {
-        //                 authToken: clientAccessToken,
-        //             },
-        //         },
-        //     },
-        //     WebSocket
-        // );
-
-        // const wsLink = new WebSocketLink(wsClient);
-
-        // const authHttpLink = split(
-        //     ({query}) => {
-        //         const {kind, operation} = getMainDefinition(query);
-
-        //         return kind === 'OperationDefinition' && operation === 'subscription';
-        //     },
-        //     wsLink,
-        //     authLink.concat(httpLink)
-        // );
-
-        // isomorphLink = ApolloLink.from([refreshLink, errorLink,, authHttpLink]);
 
         isomorphLink = ApolloLink.from([refreshLink, errorLink, authLink, httpLink]);
     }
@@ -126,18 +116,28 @@ function createIsomorphLink({appAuthenticated, appAuthenticating, appError}) {
 }
 /* eslint-enable */
 
-function createApolloClient(appActions, ssr) {
+function createApolloClient(appActions, getAppState, ssr) {
+    const cache = new InMemoryCache();
+    const {accessToken} = getAppState();
+    currentAccessToken = accessToken;
+
     return new ApolloClient({
         ssrMode: ssr,
-        link: createIsomorphLink(appActions),
-        cache: new InMemoryCache(),
+        link: createIsomorphLink(appActions, getAppState),
+        cache,
     });
 }
 
 function initializeApollo(initialState = null, getAppState, appActions) {
     const {accessToken, ssr} = getAppState();
-    clientAccessToken = accessToken;
-    const initApolloClient = apolloClient || createApolloClient(appActions, ssr);
+    let initApolloClient = apolloClient;
+
+    // If apolloClient is undefined or if there's an update to the accessToken,
+    // create a new apollo client
+    if (!apolloClient || currentAccessToken !== accessToken) {
+        currentAccessToken = accessToken;
+        initApolloClient = createApolloClient(appActions, getAppState, ssr);
+    }
     // If your page has Next.js data fetching methods that use Apollo Client, the initial state
     // get hydrated here
     if (initialState) {
@@ -154,10 +154,10 @@ function initializeApollo(initialState = null, getAppState, appActions) {
     return initApolloClient;
 }
 
-export function useApollo({appActions, getAppState, initialState}) {
+export function useApolloInit({appActions, getAppState, initialState}) {
     const apolloClient = useMemo(
         () => initializeApollo(initialState, getAppState, appActions),
-        [initialState]
+        [initialState, getAppState, appActions]
     );
 
     return apolloClient;

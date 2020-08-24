@@ -131,22 +131,22 @@ export async function getLoginResponse({appPassword, email, password}, context) 
         throw new UserInputError('USER_INVALID_PASSWORD');
     }
 
-    const {id: userId} = user;
+    const {id: userId, name: userName} = user;
     const accessToken = await getNewTokens(context, userId);
 
-    return {accessToken, name: user.name};
+    return {accessToken, name: userName, userId};
 }
 
-export async function getSignupResponse({appPassword, email, name, password}, context) {
-    let userExists;
+export async function getSignupResponse(input, context) {
+    const {appPassword, email, name, password} = input || {};
 
     if (appPassword !== APP_PASSWORD) {
         throw new UserInputError('USER_INVALID_APP_PASSWORD');
     }
 
-    userExists = await getUser({email}, context);
+    const userExists = await getUser({email}, context);
 
-    if (userExists.name) {
+    if (userExists && userExists.name) {
         throw new AuthenticationError('USER_EXISTING_ACCOUNT');
     }
 
@@ -162,10 +162,10 @@ export async function getSignupResponse({appPassword, email, name, password}, co
         throw new AuthenticationError('USER_CREATE_FAILED');
     }
 
-    const {id: userId} = user;
+    const {id: userId, name: userName} = user;
     const accessToken = await getNewTokens(context, userId);
 
-    return {accessToken, name: user.name};
+    return {accessToken, name: userName, userId};
 }
 
 export async function getRefreshTokenResponse(context) {
@@ -179,6 +179,7 @@ export async function getRefreshTokenResponse(context) {
         refreshTokenResponse = {
             accessToken,
             name,
+            userId,
         };
 
         try {
