@@ -18,7 +18,7 @@ export default function AddItemForm({className}) {
         className,
         rootClass: 'add-item-form',
     });
-    const {isDisabled, listId} = useListsData();
+    const {isDisabled, selectedListId: listId} = useListsData();
     const {addItemCalled, addItemLoading, addItemMutation} = useItemsData();
 
     const nameInputRef = useRef(null);

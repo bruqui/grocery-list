@@ -76,13 +76,9 @@ export default function Lists({className}) {
                         userId={userId}
                     />
                 )}
-                {selectValue && (
-                    <ItemsDataProvider>
-                        <div className={getClass('content')}>
-                            {renderArray[activeTab]()}
-                        </div>
-                    </ItemsDataProvider>
-                )}
+                <ItemsDataProvider>
+                    <div className={getClass('content')}>{renderArray[activeTab]()}</div>
+                </ItemsDataProvider>
             </div>
         </Authenticated>
     );

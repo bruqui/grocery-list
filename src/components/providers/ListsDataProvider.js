@@ -143,12 +143,12 @@ export default function ListsDataProvider({children}) {
 
     function isDisabled(ownerOnly) {
         let disabled = true;
-        const notOwner = get(currentList, 'owner.id') !== userId;
+        const listIsOwned = get(currentList, 'owner.id') === userId;
 
-        if (ownerOnly) {
-            disabled = notOwner;
+        if (listIsOwned) {
+            disabled = false;
         } else {
-            disabled = notOwner ? !get(currentList, 'collaborated') : false;
+            disabled = !get(currentList, 'collaborated');
         }
 
         return disabled;
