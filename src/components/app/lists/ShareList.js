@@ -2,10 +2,10 @@ import React, {useMemo} from 'react';
 import PropTypes from 'prop-types';
 import gql from 'graphql-tag';
 import {get} from 'lodash';
-import {useQuery} from '@apollo/react-hooks';
+import {useMutation, useQuery} from '@apollo/react-hooks';
 
 import getClassName from 'tools/getClassName';
-import {useAuth} from 'components/providers/AuthProvider';
+import {useListsData} from 'components/providers/ListsDataProvider';
 import {useGlobalLoading} from 'components/providers/LoadingProvider';
 
 // core
@@ -15,64 +15,84 @@ import {List} from 'components/core/list';
 // app
 import ListItemGrid from 'components/app/ListItemGrid';
 
-const ALL_USERS = gql`
-    query ALL_USERS {
-        allUsers {
+const SHARED_USERS = gql`
+    query SHARED_USERS($listId: String!) {
+        sharedUsers(listId: $listId) {
             id
             name
             email
+            sharedLists {
+                id
+            }
         }
     }
 `;
-
-const ALL_SHARED_WITH = gql`
-    query ALL_SHARED_WITH($listId: String!) {
-        listSharedWith(listId: $listId) {
+const SHARE_UNSHARE_LIST = gql`
+    mutation SHARE_UNSHARE_LIST($listId: String!, $userId: String!) {
+        shareUnshareList(listId: $listId, userId: $userId) {
             id
+            sharedWith {
+                id
+            }
         }
     }
 `;
 
-export default function ShareList({className, disabled, listId, pollInterval}) {
+export default function ShareList({className}) {
     const [rootClassName] = getClassName({className, rootClass: 'share'});
-    const {userId} = useAuth();
-    const {loading: sharedWithLoading, data: sharedWithResponse} = useQuery(
-        ALL_SHARED_WITH,
+    const {isDisabled, selectedListId: listId, userId} = useListsData();
+    const {loading: loadingUsers, data: usersResponse} = useQuery(SHARED_USERS, {
+        skip: !listId,
+        variables: {
+            listId,
+        },
+    });
+    const [shareUnshareListMutation, {loading: loadingShareList}] = useMutation(
+        SHARE_UNSHARE_LIST,
         {
-            pollInterval,
-            skip: !listId,
-            ssr: false,
-            variables: {listId},
+            refetchQueries: [{query: SHARED_USERS}],
         }
     );
-    const {loading: loadingUsers, data: usersResponse} = useQuery(ALL_USERS);
-    const sharedWithData = useMemo(() => get(sharedWithResponse, 'listSharedWith', []), [
-        sharedWithResponse,
+    const userData = useMemo(() => get(usersResponse, 'sharedUsers', []), [
+        usersResponse,
     ]);
-    const userData = useMemo(() => get(usersResponse, 'allUsers', []), [
-        sharedWithResponse,
+    const disabled = useMemo(() => isDisabled(true) || loadingUsers, [
+        isDisabled,
+        loadingUsers,
     ]);
 
-    useGlobalLoading('sharedWithLoading', sharedWithLoading);
     useGlobalLoading('loadingUsers', loadingUsers);
+    useGlobalLoading('loadingShareList', loadingShareList);
+
+    function handleShareUnshareClick(event) {
+        shareUnshareListMutation({
+            variables: {
+                listId,
+                userId: event.currentTarget.value,
+                remove: !event.currentTarget.checked,
+            },
+        });
+    }
 
     return (
         <List className={rootClassName}>
             {userData
-                .filter(({id}) => userId !== id)
-                .map(({id: sharedWithId, name: sharedWithName}) => (
-                    <ListItemGrid key={sharedWithId}>
+                .filter(({id}) => id !== userId)
+                .map(({id: userId, name: userName, sharedLists}) => (
+                    <ListItemGrid key={userId}>
                         <div>
                             <Switch
-                                name={`need_${sharedWithId}`}
+                                name={`need_${userId}`}
                                 defaultChecked={
-                                    !!sharedWithData.filter(({id}) => id === sharedWithId)
-                                        .length
+                                    !!sharedLists.filter(({id}) => id === listId).length
                                 }
                                 disabled={disabled}
+                                onClick={handleShareUnshareClick}
+                                value={userId}
                             />
                         </div>
-                        <div>{sharedWithName}</div>
+                        <div>{userName}</div>
+                        <div />
                     </ListItemGrid>
                 ))}
         </List>

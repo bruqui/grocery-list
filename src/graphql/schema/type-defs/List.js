@@ -2,16 +2,15 @@ export const ListDefs = `
     extend type Query {
         allListsForUser: [List]!
         itemsForList(listId: String!): [Item]!
-        listSharedWith(listId: String!): [ListSharedWith]!
     }
 
     extend type Mutation {
         createList(name: String!): List!
-        shareList(listId: String!, userId: String!): List!
+        shareUnshareList(listId: String!, userId: String!, remove: Boolean): List!
         deleteList(id: String!): List!
         createItem(listId: String!, name: String!): Item
         updateItem(itemId: String!, name: String, need: Boolean, purchased: Boolean): Item
-        updateItems(listId: String, need: Boolean, purchased: Boolean): [Item!]!
+        updateItems(itemIds: [String], need: Boolean, purchased: Boolean): ItemsResponse
         deleteItem(id: String!): Item
     }
 
@@ -22,7 +21,7 @@ export const ListDefs = `
         collaborated: Boolean!
         name: String!
         owner: User!
-        sharedWith: [ListSharedUsers]
+        sharedWith: [User]
         items: [Item]
     }
 
@@ -42,11 +41,6 @@ export const ListDefs = `
         name: String!
     }
 
-    type ListSharedUsers {
-        user: User!
-        list: List!
-    }
-
     type ActiveItems {
         id: String!
         createdAt: String!
@@ -54,8 +48,12 @@ export const ListDefs = `
         list: List
     }
 
+    type ItemsResponse {
+        count: Int!
+    }
+
     extend type User {
-        sharedLists: [ListSharedUsers]
+        sharedLists: [List]
         lists: [List]
     }
 

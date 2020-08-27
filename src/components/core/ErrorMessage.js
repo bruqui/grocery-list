@@ -14,7 +14,7 @@ export default function ErrorMessage({className, error, name}) {
 
     useEffect(() => {
         setOpen(!!error);
-    }, [error]);
+    }, [error, setOpen]);
 
     function handleClose(event) {
         setOpen(false);

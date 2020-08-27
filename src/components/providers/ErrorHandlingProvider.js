@@ -49,7 +49,7 @@ export default function ErrorHandlingProvider({appActions, appState, children}) 
             setGraphQLError(appStateError);
             appActions.appError({});
         }
-    }, [appStateError]);
+    }, [appActions, appStateError, setGraphQLError]);
 
     const context = {setGraphQLError};
 

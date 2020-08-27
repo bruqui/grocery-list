@@ -7,8 +7,8 @@ import {useForm} from 'react-hook-form';
 import {useMutation} from '@apollo/react-hooks';
 
 import getClassName from 'tools/getClassName';
+import {ALL_LISTS} from 'components/providers/ListsDataProvider';
 import {required} from 'tools/fieldErrors';
-import {ALL_LISTS} from 'components/app/lists/Lists';
 import {useAuth} from 'components/providers/AuthProvider';
 
 import Button from 'components/core/Button';

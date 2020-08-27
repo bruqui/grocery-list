@@ -1,11 +1,13 @@
 import {getUserId} from '../../lib/user';
-import {get} from 'lodash';
 
 const listFragment = `{
     id
     collaborated
     name
     owner {
+        id
+    }
+    sharedWith {
         id
     }
 }`;
@@ -40,15 +42,6 @@ export const listResolvers = {
                 .items({where: {list: {id: listId}}})
                 .$fragment(itemFragment);
         },
-        listSharedWith: async (parent, {listId}, context) => {
-            const list = await context.prisma.listsConnection({
-                where: {
-                    id: listId,
-                },
-            });
-
-            return get(list, 'edges.0.node.sharedWith', []);
-        },
     },
     MUTATION: {
         createList: async (parent, {name}, context) => {
@@ -63,11 +56,17 @@ export const listResolvers = {
                 })
                 .$fragment(listFragment);
         },
-        shareList: (parent, {listId, userId}, context) => {
-            return context.prisma.createListSharedUsers({
-                user: {connect: {id: userId}},
-                list: {connect: {id: listId}},
-            });
+        shareUnshareList: (parent, {listId, userId, remove}, context) => {
+            const connectDisconnect = remove ? 'disconnect' : 'connect';
+
+            return context.prisma
+                .updateList({
+                    where: {
+                        id: listId,
+                    },
+                    data: {sharedWith: {[connectDisconnect]: {id: userId}}},
+                })
+                .$fragment(listFragment);
         },
         deleteList: (parent, {id}, context) => {
             return context.prisma.deleteList({id}).$fragment(listFragment);
@@ -88,13 +87,11 @@ export const listResolvers = {
                 })
                 .$fragment(itemFragment);
         },
-        updateItems: (parent, {listId, ...data}, context) => {
-            return context.prisma
-                .updateManyItems({
-                    where: {list: {id: listId}},
-                    data,
-                })
-                .$fragment(itemFragment);
+        updateItems: (parent, {itemIds, ...data}, context) => {
+            return context.prisma.updateManyItems({
+                where: {id_in: itemIds},
+                data,
+            });
         },
         deleteItem: (parent, {id}, context) => {
             return context.prisma.deleteItem({id}).$fragment(itemFragment);

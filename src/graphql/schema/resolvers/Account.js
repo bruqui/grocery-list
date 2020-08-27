@@ -9,6 +9,18 @@ import {
 import {getUser, getUserId} from 'graphql/lib/user';
 import {getHashSalt} from 'graphql/lib/encryption';
 
+const allUsersFragement = `{
+                id
+                name
+                email
+                lists {
+                    id
+                }
+                sharedLists {
+                    id
+                }
+            }`;
+
 // Not sure why eslint doesn't think it's imported.
 // eslint-disable-next-line import/no-unused-modules
 export const accountResolvers = {
@@ -25,7 +37,18 @@ export const accountResolvers = {
             return getUser({email}, context);
         },
         allUsers: (parent, args, context) => {
-            return context.prisma.users();
+            return context.prisma.users().$fragment(allUsersFragement);
+        },
+        sharedUsers: (parent, {listId}, context) => {
+            const userId = getUserId(context);
+
+            context.prisma
+                .users({
+                    where: {
+                        OR: [{id_not: userId}, {lists_every: {id_not: listId}}],
+                    },
+                })
+                .$fragment(allUsersFragement);
         },
     },
     MUTATION: {

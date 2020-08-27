@@ -1,41 +1,59 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import gql from 'graphql-tag';
-import {useMutation} from '@apollo/react-hooks';
-
-import {ALL_LISTS} from './Lists';
-import {useGlobalLoading} from 'components/providers/LoadingProvider';
 
 import getClassName from 'tools/getClassName';
+import {useListsData} from 'components/providers/ListsDataProvider';
+import {useItemsData} from 'components/providers/ItemsDataProvider';
 
 // core
 import Button from 'components/core/Button';
+import IconButton from 'components/core/IconButton';
 import Switch from 'components/core/Switch';
 
 // app
 import AddItemForm from 'components/app/items/AddItemForm';
+import Items from 'components/app/items/Items';
 
 import './EditList.scss';
 
-const DELETE_LIST = gql`
-    mutation DELETE_LIST($listId: String!) {
-        deleteList(id: $listId) {
-            id
-        }
-    }
-`;
-
-export default function EditList({children, className, listId, editable}) {
+export default function EditList({children, className}) {
     const [rootClassName, getClass] = getClassName({className, rootClass: 'edit-list'});
-    const [deleteListMutation, {loading: deleteLoading}] = useMutation(DELETE_LIST, {
-        variables: {listId},
-        // TODO: add update function
-    });
+    const {deleteListMutation, isDisabled} = useListsData();
+    const {itemsData, updateItemMutation} = useItemsData();
 
-    useGlobalLoading('deleteLoading', deleteLoading);
+    function handleNeedClick(event) {
+        updateItemMutation({
+            variables: {
+                itemId: event.currentTarget.value,
+                need: !!event.currentTarget.checked,
+                purchased: false,
+            },
+        });
+    }
 
     function handleDeleteClick() {
-        deleteListMutation({variables: {listId}, refetchQueries: [{query: ALL_LISTS}]});
+        deleteListMutation();
+    }
+
+    function renderFirstColumn({id: itemId, name: itemName, need, purchase}) {
+        return (
+            <Switch
+                name={`need_${itemId}`}
+                checked={need}
+                disabled={isDisabled()}
+                onClick={handleNeedClick}
+                value={itemId}
+            />
+        );
+    }
+
+    function renderThirdColumn({id: itemId, name, need, purchase, updateItem}) {
+        return (
+            <React.Fragment>
+                <IconButton icon="edit" disabled={isDisabled()} />
+                <IconButton icon="delete" disabled={isDisabled(true)} />
+            </React.Fragment>
+        );
     }
 
     return (
@@ -48,15 +66,19 @@ export default function EditList({children, className, listId, editable}) {
                 />
                 <Button
                     className={getClass('delete')}
-                    disabled={!editable}
+                    disabled={isDisabled(true)}
                     onClick={handleDeleteClick}
                     raised
                 >
                     Delete List
                 </Button>
             </div>
-            <AddItemForm listId={listId} disabled={!editable} />
-            {children}
+            <AddItemForm />
+            <Items
+                itemsData={itemsData}
+                renderFirstColumn={renderFirstColumn}
+                renderThirdColumn={renderThirdColumn}
+            />
         </div>
     );
 }
@@ -64,6 +86,4 @@ export default function EditList({children, className, listId, editable}) {
 EditList.propTypes = {
     children: PropTypes.node,
     className: PropTypes.string,
-    editable: PropTypes.bool,
-    listId: PropTypes.string.isRequired,
 };

@@ -1,43 +1,24 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
-import gql from 'graphql-tag';
 import {useForm} from 'react-hook-form';
-import {useMutation} from '@apollo/react-hooks';
 
 import getClassName from 'tools/getClassName';
-import {useGlobalLoading} from 'components/providers/LoadingProvider';
-import {ALL_LISTS} from './Lists';
+import {useListsData} from 'components/providers/ListsDataProvider';
 
 // core
 import Button from 'components/core/Button';
 import TextField from 'components/core/TextField';
 
-// TODO: Get NewList fragment to work
-const CREATE_LIST = gql`
-    mutation CREATE_LIST($name: String!) {
-        createList(name: $name) {
-            id
-            name
-            collaborated
-            owner {
-                id
-            }
-        }
-    }
-`;
-
-export default function AddListForm({className, goToEdit}) {
+export default function AddListForm({className}) {
     const [rootClassName] = getClassName({className, rootClass: 'add-list-form'});
     const {register: fieldRegister, handleSubmit, errors: fieldErrors, reset} = useForm();
-    const [addListMutation, {loading: addListLoading}] = useMutation(CREATE_LIST, {
-        onCompleted: ({createList}) => {
-            reset();
-            goToEdit(createList.id);
-        },
-        refetchQueries: [{query: ALL_LISTS}],
-    });
+    const {addListCalled, addListLoading, addListMutation} = useListsData();
 
-    useGlobalLoading('addListLoading', addListLoading);
+    useEffect(() => {
+        if (addListCalled) {
+            reset();
+        }
+    }, [addListCalled, reset]);
 
     async function handleOnSubmit(formData) {
         addListMutation({variables: formData});
@@ -66,5 +47,4 @@ export default function AddListForm({className, goToEdit}) {
 
 AddListForm.propTypes = {
     className: PropTypes.string,
-    goToEdit: PropTypes.func,
 };

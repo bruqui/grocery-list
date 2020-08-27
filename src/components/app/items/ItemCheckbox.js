@@ -8,33 +8,29 @@ import IconButton from 'components/core/IconButton';
 
 import './ItemCheckbox.scss';
 
-export default function ItemCheckbox({
-    checked,
-    className,
-    clearFromNeed,
-    itemId,
-    onClick,
-    value,
-}) {
+export default function ItemCheckbox({className, itemId, purchased, onChange}) {
     const [rootClassName] = getClassName({
         className,
-        modifiers: {purchased: checked},
+        modifiers: {purchased},
         rootClass: 'item-checkbox',
     });
 
-    function handleClick(event) {
-        const purchased = !checked;
-        const need = purchased ? !clearFromNeed : true;
+    function handleChange(event) {
+        const checked = event.detail.isOn;
 
-        onClick({itemId: value, need, purchased});
+        onChange({
+            checked,
+            itemId,
+            purchased,
+        });
     }
 
     return (
         <IconButton
             className={rootClassName}
-            checked={checked}
+            checked={purchased}
             icon="check_circle_outline"
-            onClick={handleClick}
+            onChange={handleChange}
             onIcon="check_circle"
         />
     );
@@ -43,8 +39,7 @@ export default function ItemCheckbox({
 ItemCheckbox.propTypes = {
     checked: PropTypes.bool,
     className: PropTypes.string,
-    clearFromNeed: PropTypes.bool,
-    itemId: PropTypes.string,
-    onClick: PropTypes.func,
-    value: PropTypes.string,
+    itemId: PropTypes.string.isRequired,
+    purchased: PropTypes.bool,
+    onChange: PropTypes.func.isRequired,
 };
