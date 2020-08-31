@@ -50,19 +50,18 @@ export default function ShareList({className}) {
     const [shareUnshareListMutation, {loading: loadingShareList}] = useMutation(
         SHARE_UNSHARE_LIST,
         {
-            refetchQueries: [{query: SHARED_USERS}],
+            refetchQueries: [{query: SHARED_USERS, variables: {listId}}],
         }
     );
     const userData = useMemo(() => get(usersResponse, 'sharedUsers', []), [
         usersResponse,
     ]);
-    const disabled = useMemo(() => isDisabled(true) || loadingUsers, [
+    const disabled = useMemo(() => isDisabled({ownerOnly: true}) || loadingUsers, [
         isDisabled,
         loadingUsers,
     ]);
 
     useGlobalLoading('loadingUsers', loadingUsers);
-    useGlobalLoading('loadingShareList', loadingShareList);
 
     function handleShareUnshareClick(event) {
         shareUnshareListMutation({

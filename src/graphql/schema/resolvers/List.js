@@ -71,10 +71,16 @@ export const listResolvers = {
         deleteList: (parent, {id}, context) => {
             return context.prisma.deleteList({id}).$fragment(listFragment);
         },
+        updateList: (parent, {listId, ...args}, context) => {
+            return context.prisma
+                .updateList({where: {id: listId}, data: args})
+                .$fragment(listFragment);
+        },
         createItem: (parent, {listId, name}, context) => {
             return context.prisma
                 .createItem({
                     name,
+                    need: true,
                     list: {connect: {id: listId}},
                 })
                 .$fragment(itemFragment);
@@ -93,8 +99,8 @@ export const listResolvers = {
                 data,
             });
         },
-        deleteItem: (parent, {id}, context) => {
-            return context.prisma.deleteItem({id}).$fragment(itemFragment);
+        deleteItem: (parent, {itemId}, context) => {
+            return context.prisma.deleteItem({id: itemId}).$fragment(itemFragment);
         },
     },
 };

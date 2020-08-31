@@ -1,0 +1,12 @@
+@import '_base';
+
+.complete-it-list {
+    display: block;
+    &__complete-actions {
+        text-align: center;
+    }
+
+    &__clear-switch {
+        margin: $gutter 0;
+    }
+}

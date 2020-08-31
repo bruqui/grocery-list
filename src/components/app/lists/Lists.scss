@@ -8,14 +8,6 @@
         padding: $gutter;
     }
 
-    &__complete-actions {
-        text-align: center;
-    }
-
-    &__clear-switch {
-        margin: $gutter 0;
-    }
-
     &__list {
         display: grid;
         gap: $gutter $gutter;

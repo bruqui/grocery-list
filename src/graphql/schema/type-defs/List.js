@@ -8,10 +8,11 @@ export const ListDefs = `
         createList(name: String!): List!
         shareUnshareList(listId: String!, userId: String!, remove: Boolean): List!
         deleteList(id: String!): List!
+        updateList(listId: String!, collaborated: Boolean, name: String): List!
         createItem(listId: String!, name: String!): Item
         updateItem(itemId: String!, name: String, need: Boolean, purchased: Boolean): Item
         updateItems(itemIds: [String], need: Boolean, purchased: Boolean): ItemsResponse
-        deleteItem(id: String!): Item
+        deleteItem(itemId: String!): Item
     }
 
     type List {

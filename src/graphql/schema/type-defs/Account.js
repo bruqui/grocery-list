@@ -5,7 +5,7 @@ export const AccountDefs = `
         userByAuth: User @isAuthenticated
         usersByList(listId: String!): [User]!
         allUsers(input: AllUsersInput): [User!]! @isAuthenticated
-        sharedUsers(listId: String!): [User!]! @isAuthenticated
+        sharedUsers(listId: String!): [User]! @isAuthenticated
     }
     extend type Mutation {
         login(email: String!, password: String!, appPassword: String!): LoginResponse!

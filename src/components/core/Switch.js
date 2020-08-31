@@ -2,6 +2,8 @@ import React, {useState} from 'react';
 import PropTypes from 'prop-types';
 import {Switch as MdcSwitch} from '@rmwc/switch';
 
+import LoadingSpinner from './LoadingSpinner';
+
 import getClassName from 'tools/getClassName';
 
 import './Switch.scss';
@@ -12,6 +14,7 @@ export default function Switch({
     inputClassName,
     inputRef,
     label,
+    loading,
     name,
     onChange,
     rootProps,
@@ -32,7 +35,9 @@ export default function Switch({
         onChange(event);
     }
 
-    return (
+    return loading ? (
+        <LoadingSpinner small />
+    ) : (
         <MdcSwitch
             {...props}
             className={rootClassName}

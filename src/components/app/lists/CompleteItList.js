@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 
 import getClassName from 'tools/getClassName';
 import {useItemsData} from 'components/providers/ItemsDataProvider';
-import {useListsData} from 'components/providers/ListsDataProvider';
 
 // core
 import Button from 'components/core/Button';
@@ -20,7 +19,6 @@ export default function CompleteItList({className}) {
         rootClass: 'complete-it-list',
     });
     const [clearFromNeed, setClearFromNeed] = useState(false);
-    const {selectedListId: listId} = useListsData();
     const {updateItemMutation, updateItemsMutation, itemsData} = useItemsData();
     const neededItemsData = useMemo(() => itemsData.filter(({need}) => need) || []);
 
@@ -61,7 +59,6 @@ export default function CompleteItList({className}) {
 
     return (
         <div className={rootClassName}>
-            {' '}
             <div className={getClass('complete-actions')}>
                 <Button raised onClick={handleClearCompletedClick}>
                     Clear Completed From List

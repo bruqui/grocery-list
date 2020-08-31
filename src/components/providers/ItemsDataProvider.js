@@ -39,6 +39,13 @@ const CREATE_ITEM = gql`
         }
     }
 `;
+const DELETE_ITEM = gql`
+    mutation DELETE_ITEM($itemId: String!) {
+        deleteItem(itemId: $itemId) {
+            id
+        }
+    }
+`;
 const UPDATE_ITEM = gql`
     mutation UPDATE_ITEM($itemId: String!, $need: Boolean, $purchased: Boolean) {
         updateItem(itemId: $itemId, need: $need, purchased: $purchased) {
@@ -78,6 +85,9 @@ export default function ItemsProvider({children}) {
     const [updateItemMutation, {loading: updateItemLoading}] = useMutation(UPDATE_ITEM, {
         refetchQueries: [{query: ALL_ITEMS, variables: {listId}}],
     });
+    const [deleteItemMutation, {loading: deleteItemLoading}] = useMutation(DELETE_ITEM, {
+        refetchQueries: [{query: ALL_ITEMS, variables: {listId}}],
+    });
     const [updateItemsMutation, {loading: updateItemsLoading}] = useMutation(
         UPDATE_ITEMS,
         {
@@ -114,6 +124,8 @@ export default function ItemsProvider({children}) {
         addItemCalled,
         addItemLoading,
         addItemMutation,
+        deleteItemLoading,
+        deleteItemMutation,
         itemsData,
         updateItemMutation,
         updateItemsMutation,

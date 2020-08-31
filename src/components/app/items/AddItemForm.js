@@ -26,11 +26,15 @@ export default function AddItemForm({className}) {
     const {register: fieldRegister, handleSubmit, errors: fieldErrors, reset} = useForm();
 
     useEffect(() => {
-        if (addItemCalled && nameInputRef.current.value) {
-            reset();
+        if (!addItemLoading && addItemCalled && nameInputRef.current.value) {
+            // Need to make sure reset is finished before focussing because the
+            // field loses focus for some reason if reset is doing things.
+            const resetForm = async () => await reset();
+
+            resetForm();
             nameInputRef.current.focus();
         }
-    }, [addItemCalled, nameInputRef, reset]);
+    }, [addItemCalled, addItemLoading, nameInputRef, reset]);
 
     function handleOnSubmit(formData) {
         addItemMutation({variables: {...formData, listId}});

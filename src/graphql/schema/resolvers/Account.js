@@ -39,10 +39,10 @@ export const accountResolvers = {
         allUsers: (parent, args, context) => {
             return context.prisma.users().$fragment(allUsersFragement);
         },
-        sharedUsers: (parent, {listId}, context) => {
-            const userId = getUserId(context);
+        sharedUsers: async (parent, {listId}, context) => {
+            const userId = await getUserId(context);
 
-            context.prisma
+            return context.prisma
                 .users({
                     where: {
                         OR: [{id_not: userId}, {lists_every: {id_not: listId}}],

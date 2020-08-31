@@ -18,8 +18,20 @@ import './EditList.scss';
 
 export default function EditList({children, className}) {
     const [rootClassName, getClass] = getClassName({className, rootClass: 'edit-list'});
-    const {deleteListMutation, isDisabled} = useListsData();
-    const {itemsData, updateItemMutation} = useItemsData();
+    const {
+        currentList,
+        deleteListMutation,
+        isDisabled,
+        selectedListId: listId,
+        updateListMutation,
+    } = useListsData();
+    const {
+        itemsData,
+        deleteItemMutation,
+        deleteItemLoading,
+        updateItemMutation,
+    } = useItemsData();
+    const {collaborated} = currentList;
 
     function handleNeedClick(event) {
         updateItemMutation({
@@ -31,8 +43,20 @@ export default function EditList({children, className}) {
         });
     }
 
+    function handleCollaborateClick(event) {
+        updateListMutation({
+            variables: {listId, collaborated: event.currentTarget.checked},
+        });
+    }
+
     function handleDeleteClick() {
         deleteListMutation();
+    }
+
+    function handleDeleteItemClick(itemId) {
+        return () => {
+            deleteItemMutation({variables: {itemId}});
+        };
     }
 
     function renderFirstColumn({id: itemId, name: itemName, need, purchase}) {
@@ -51,7 +75,11 @@ export default function EditList({children, className}) {
         return (
             <React.Fragment>
                 <IconButton icon="edit" disabled={isDisabled()} />
-                <IconButton icon="delete" disabled={isDisabled(true)} />
+                <IconButton
+                    icon="delete"
+                    disabled={isDisabled({ownerOnly: true})}
+                    onClick={handleDeleteItemClick(itemId)}
+                />
             </React.Fragment>
         );
     }
@@ -61,12 +89,15 @@ export default function EditList({children, className}) {
             <div className={getClass('list-actions')}>
                 <Switch
                     className={getClass('collaborated')}
+                    checked={collaborated}
+                    disabled={isDisabled({ownerOnly: true})}
                     label="collaborated"
                     name="collaborated"
+                    onClick={handleCollaborateClick}
                 />
                 <Button
                     className={getClass('delete')}
-                    disabled={isDisabled(true)}
+                    disabled={isDisabled({ownerOnly: true})}
                     onClick={handleDeleteClick}
                     raised
                 >

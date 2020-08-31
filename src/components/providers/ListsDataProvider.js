@@ -24,6 +24,8 @@ const DEFAULT_CONTEXT = {
     selectValue: '',
     setActiveTab: () => 3,
     setSelectedListId: () => null,
+    updateListMutation: () => null,
+    updateListLoading: false,
     userId: null,
 };
 export const ALL_LISTS = gql`
@@ -41,6 +43,18 @@ export const ALL_LISTS = gql`
 const CREATE_LIST = gql`
     mutation CREATE_LIST($name: String!) {
         createList(name: $name) {
+            id
+            name
+            collaborated
+            owner {
+                id
+            }
+        }
+    }
+`;
+const UPDATE_LIST = gql`
+    mutation UPDATE_LIST($listId: String!, $collaborated: Boolean, $name: String) {
+        updateList(listId: $listId, collaborated: $collaborated, name: $name) {
             id
             name
             collaborated
@@ -89,12 +103,19 @@ export default function ListsDataProvider({children}) {
         [listCalled, listDataResponse]
     );
     const selectValue = useMemo(() => {
-        return listData &&
-            listData.length &&
-            selectedListId &&
-            listData.filter(({id}) => id === selectedListId).length
-            ? selectedListId
-            : get(listData, '0.id');
+        let responseValue = '';
+
+        if (listData && listData.length) {
+            if (listData.filter(({id}) => id === selectedListId).length) {
+                responseValue = selectedListId;
+            } else {
+                responseValue =
+                    listData.find(({owner}) => owner.id === userId).id ||
+                    get(listData, '0.id');
+            }
+        }
+
+        return responseValue;
     }, [listData, selectedListId]);
     const currentList = useMemo(
         listCalled ? () => find(listData, ({id}) => id === selectValue) || {} : {},
@@ -111,6 +132,14 @@ export default function ListsDataProvider({children}) {
     });
     const [deleteListMutation, {loading: deleteLoading}] = useMutation(
         DELETE_LIST,
+        {
+            variables: {listId: selectedListId},
+            refetchQueries: [{query: ALL_LISTS}],
+        }
+        // TODO: add update function
+    );
+    const [updateListMutation, {loading: updateListLoading}] = useMutation(
+        UPDATE_LIST,
         {
             variables: {listId: selectedListId},
             refetchQueries: [{query: ALL_LISTS}],
@@ -141,14 +170,16 @@ export default function ListsDataProvider({children}) {
         }
     }
 
-    function isDisabled(ownerOnly) {
+    // If ownerOnly is set to true, the item will only be enabled if the
+    // the list belongs to the user.
+    function isDisabled({ownerOnly} = {}) {
         let disabled = true;
         const listIsOwned = get(currentList, 'owner.id') === userId;
 
         if (listIsOwned) {
             disabled = false;
         } else {
-            disabled = !get(currentList, 'collaborated');
+            disabled = ownerOnly ? true : !get(currentList, 'collaborated');
         }
 
         return disabled;
@@ -170,6 +201,8 @@ export default function ListsDataProvider({children}) {
         setActiveTab,
         selectedListId,
         setSelectedListId,
+        updateListMutation,
+        updateListLoading,
         userId,
     };
 

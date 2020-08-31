@@ -142,17 +142,13 @@ export default function LoginForm({path, register}) {
                 {registering && (
                     <TextField {...getFieldProps({name: 'name', label: 'Name'})} />
                 )}
-                <TextField
-                    {...getFieldProps({name: 'email', label: 'Email'})}
-                    defaultValue="user@name.com"
-                />
+                <TextField {...getFieldProps({name: 'email', label: 'Email'})} />
                 <TextField
                     {...getFieldProps({
                         name: 'password',
                         label: 'Password',
                         type: 'password',
                     })}
-                    defaultValue="password"
                 />
                 {registering && (
                     <TextField

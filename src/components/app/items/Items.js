@@ -3,11 +3,8 @@ import PropTypes from 'prop-types';
 
 import getClassName from 'tools/getClassName';
 
-// core
-import {List} from 'components/core/list';
-
 // app
-import ListItemGrid from 'components/app/ListItemGrid';
+import ItemDetail from 'components/app/items/ItemDetail';
 
 export default function Items({
     className,
@@ -19,15 +16,16 @@ export default function Items({
 
     return (
         <div className={rootClassName}>
-            <List>
-                {itemsData.map((item) => (
-                    <ListItemGrid key={item.id}>
-                        <div>{renderFirstColumn(item)}</div>
-                        <div>{item.name}</div>
-                        <div>{renderThirdColumn(item)}</div>
-                    </ListItemGrid>
+            <ul>
+                {itemsData.map(({itemId, ...itemData}) => (
+                    <ItemDetail
+                        key={itemId}
+                        itemData={itemData}
+                        renderFirstColumn={renderFirstColumn}
+                        renderThirdColumn={renderThirdColumn}
+                    />
                 ))}
-            </List>
+            </ul>
         </div>
     );
 }

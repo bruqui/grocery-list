@@ -11,7 +11,7 @@ import './ListItemGrid.scss';
 export default function ListItemGrid({className, children}) {
     const [rootClassName] = getClassName({className, rootClass: 'list-item-grid'});
 
-    return <ListItem className={rootClassName}>{children}</ListItem>;
+    return <li className={rootClassName}>{children}</li>;
 }
 
 ListItemGrid.propTypes = {
