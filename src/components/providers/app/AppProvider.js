@@ -10,6 +10,7 @@ import appReducer from './appReducer';
 import AppStateProvider from '../AppStateProvider';
 import AuthProvider from '../AuthProvider';
 import ErrorHandlingProvider from '../ErrorHandlingProvider';
+import ListDataProvider from '../ListDataProvider';
 import LoadingProvider from '../LoadingProvider';
 import NotificationProvider from '../NotificationProvider';
 import StorageProvider from '../StorageProvider';
@@ -35,7 +36,9 @@ export default function AppProvider({children, pageProps}) {
                                 appActions={appActions}
                             >
                                 <ApolloProvider client={apolloClient}>
-                                    {children}
+                                    <ListDataProvider {...pageProps}>
+                                        {children}
+                                    </ListDataProvider>
                                 </ApolloProvider>
                             </AuthProvider>
                         </LoadingProvider>

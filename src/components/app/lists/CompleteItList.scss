@@ -9,4 +9,16 @@
     &__clear-switch {
         margin: $gutter 0;
     }
+
+    &__li {
+        align-items: center;
+        column-gap: $gutter;
+        display: grid;
+        grid-template-columns: auto 23rem;
+        justify-items: start;
+    }
+
+    &__no-items {
+        padding: $gutter;
+    }
 }

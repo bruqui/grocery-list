@@ -6,9 +6,18 @@ const listFragment = `{
     name
     owner {
         id
+        name
     }
     sharedWith {
         id
+        name
+        email
+    }
+    items {
+        id,
+        name,
+        need,
+        purchased,
     }
 }`;
 const itemFragment = `{
@@ -26,16 +35,25 @@ export const listResolvers = {
     QUERY: {
         allListsForUser: async (parent, args, context) => {
             const userId = await getUserId(context);
-            const listsData = await context.prisma
-                .lists({
-                    where: {
-                        OR: [{owner: {id: userId}}, {sharedWith_some: {id: userId}}],
-                    },
-                })
-                .$fragment(listFragment);
+            const listsData = await context.prisma.lists({
+                where: {
+                    OR: [{owner: {id: userId}}, {sharedWith_some: {id: userId}}],
+                },
+            }).$fragment(`{
+                id
+                name
+                collaborated
+                owner {
+                    id
+                    name
+                }
+            }`);
 
             return listsData;
             // return listEdges.length ? listEdges.map(({node}) => node) : [];
+        },
+        list: async (parent, {listId}, context) => {
+            return await context.prisma.list({id: listId}).$fragment(listFragment);
         },
         itemsForList: async (parent, {listId}, context) => {
             return await context.prisma

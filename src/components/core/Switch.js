@@ -2,8 +2,6 @@ import React, {useState} from 'react';
 import PropTypes from 'prop-types';
 import {Switch as MdcSwitch} from '@rmwc/switch';
 
-import LoadingSpinner from './LoadingSpinner';
-
 import getClassName from 'tools/getClassName';
 
 import './Switch.scss';
@@ -14,7 +12,6 @@ export default function Switch({
     inputClassName,
     inputRef,
     label,
-    loading,
     name,
     onChange,
     rootProps,
@@ -27,7 +24,7 @@ export default function Switch({
         modifiers: {
             'full-width': fullWidth,
         },
-        rootClass: 'footer',
+        rootClass: 'switch',
     });
 
     function handleChange(event) {
@@ -35,9 +32,7 @@ export default function Switch({
         onChange(event);
     }
 
-    return loading ? (
-        <LoadingSpinner small />
-    ) : (
+    return (
         <MdcSwitch
             {...props}
             className={rootClassName}

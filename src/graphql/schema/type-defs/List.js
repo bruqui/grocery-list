@@ -2,6 +2,7 @@ export const ListDefs = `
     extend type Query {
         allListsForUser: [List]!
         itemsForList(listId: String!): [Item]!
+        list(listId: String!): List
     }
 
     extend type Mutation {

@@ -7,7 +7,6 @@ import {useForm} from 'react-hook-form';
 import {useMutation} from '@apollo/react-hooks';
 
 import getClassName from 'tools/getClassName';
-import {ALL_LISTS} from 'components/providers/ListsDataProvider';
 import {required} from 'tools/fieldErrors';
 import {useAuth} from 'components/providers/AuthProvider';
 
@@ -50,7 +49,7 @@ const SIGNUP = gql`
     }
 `;
 
-export default function LoginForm({path, register}) {
+export default function LoginForm({register}) {
     const router = useRouter();
     const [registering, setRegistering] = useState(register);
     const [mutation, setMutation] = useState(register ? SIGNUP : LOGIN);
@@ -65,7 +64,6 @@ export default function LoginForm({path, register}) {
     const [loginMutation] = useMutation(mutation, {
         onCompleted: handleLoggedIn,
         onError: handleError,
-        refetchQueries: [{query: ALL_LISTS}],
     });
     const {
         register: fieldRegister,
@@ -94,10 +92,14 @@ export default function LoginForm({path, register}) {
 
     // Go to home page once logged in and not on a page with private in the url path.
     useEffect(() => {
-        if (!authenticating && authenticated && !includes(path, 'private')) {
-            router.push('/');
+        if (
+            !authenticating &&
+            authenticated &&
+            (includes(router.pathname, 'login') || includes(router.pathname, 'signup'))
+        ) {
+            router.replace('/');
         }
-    }, [authenticating, authenticated, path]);
+    }, [authenticating, authenticated, router]);
 
     function matchesPassword(value) {
         const {password} = getValues();
@@ -190,8 +192,6 @@ export default function LoginForm({path, register}) {
 }
 
 LoginForm.propTypes = {
-    /** path from router */
-    path: PropTypes.string,
     register: PropTypes.bool,
 };
 

@@ -1,0 +1,11 @@
+@import '_base';
+
+.share-list {
+    &__li {
+        align-items: center;
+        column-gap: $gutter;
+        display: grid;
+        grid-template-columns: auto 24rem;
+        justify-items: start;
+    }
+}

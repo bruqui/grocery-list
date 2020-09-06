@@ -5,15 +5,13 @@ import {get} from 'lodash';
 import {useMutation, useQuery} from '@apollo/react-hooks';
 
 import getClassName from 'tools/getClassName';
-import {useListsData} from 'components/providers/ListsDataProvider';
+import {useListData} from 'components/providers/ListDataProvider';
 import {useGlobalLoading} from 'components/providers/LoadingProvider';
 
 // core
 import Switch from 'components/core/Switch';
-import {List} from 'components/core/list';
 
-// app
-import ListItemGrid from 'components/app/ListItemGrid';
+import './ShareList.scss';
 
 const SHARED_USERS = gql`
     query SHARED_USERS($listId: String!) {
@@ -39,8 +37,11 @@ const SHARE_UNSHARE_LIST = gql`
 `;
 
 export default function ShareList({className}) {
-    const [rootClassName] = getClassName({className, rootClass: 'share'});
-    const {isDisabled, selectedListId: listId, userId} = useListsData();
+    const [rootClassName, getChildClass] = getClassName({
+        className,
+        rootClass: 'share-list',
+    });
+    const {isDisabled, listId, userId} = useListData();
     const {loading: loadingUsers, data: usersResponse} = useQuery(SHARED_USERS, {
         skip: !listId,
         variables: {
@@ -61,6 +62,7 @@ export default function ShareList({className}) {
         loadingUsers,
     ]);
 
+    useGlobalLoading('loadingShareList', loadingShareList);
     useGlobalLoading('loadingUsers', loadingUsers);
 
     function handleShareUnshareClick(event) {
@@ -74,11 +76,11 @@ export default function ShareList({className}) {
     }
 
     return (
-        <List className={rootClassName}>
+        <ul className={rootClassName}>
             {userData
                 .filter(({id}) => id !== userId)
                 .map(({id: userId, name: userName, sharedLists}) => (
-                    <ListItemGrid key={userId}>
+                    <li key={userId} className={getChildClass('li')}>
                         <div>
                             <Switch
                                 name={`need_${userId}`}
@@ -91,10 +93,9 @@ export default function ShareList({className}) {
                             />
                         </div>
                         <div>{userName}</div>
-                        <div />
-                    </ListItemGrid>
+                    </li>
                 ))}
-        </List>
+        </ul>
     );
 }
 

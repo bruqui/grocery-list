@@ -1,64 +1,93 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
+import {get} from 'lodash';
 
 import getClassName from 'tools/getClassName';
+import {useListData} from 'components/providers/ListDataProvider';
 
 // core
-import Select from 'components/core/Select';
+import Button from 'components/core/Button';
+import Icon from 'components/core/Icon';
+import {ListLink, ListItem} from 'components/core/list';
+import {SimpleMenu} from 'components/core/menu';
 
-export default function ListSelect({
-    className,
-    selectValue,
-    listData,
-    setSelectedListId,
-    userId,
-}) {
-    const [rootClassName] = getClassName({className, rootClass: 'list-select'});
-    const listOptions = useMemo(() => {
-        function transformDataToOptions(data) {
-            return data.map(({name, id}) => ({
-                label: name,
-                value: id,
-            }));
-        }
+import './ListSelect.scss';
 
-        function filterListData(shared) {
-            return listData.filter(({owner: {id}}) => {
-                return shared ? userId !== id : userId === id;
-            });
-        }
+export default function ListSelect({className, selectValue, setSelectedListId, userId}) {
+    const [rootClassName, getChildClass] = getClassName({
+        className,
+        rootClass: 'list-select',
+    });
+    const {allListsData, listData} = useListData();
 
-        return [
-            {label: 'My Lists', options: transformDataToOptions(filterListData())},
-            {
-                label: 'Shared Lists',
-                options: transformDataToOptions(filterListData(true)),
-            },
-        ];
-    }, [listData]);
+    // const listOptions = useMemo(() => {
+    //     function transformDataToOptions(data) {
+    //         return data.map(({name, id}) => ({
+    //             label: name,
+    //             value: id,
+    //         }));
+    //     }
 
-    function handleSelectListChange(event) {
-        setSelectedListId(event.currentTarget.value);
+    //     function filterListData(shared) {
+    //         return allListsData.filter(({owner: {id}}) => {
+    //             return shared ? userId !== id : userId === id;
+    //         });
+    //     }
+
+    //     return [
+    //         {label: 'My Lists', options: transformDataToOptions(filterListData())},
+    //         {
+    //             label: 'Shared Lists',
+    //             options: transformDataToOptions(filterListData(true)),
+    //         },
+    //     ];
+    // }, [allListsData]);
+
+    function renderLink({id: listId, name, owner}) {
+        const linkName = name.length > 15 ? name.substring(0, 11) + '...' : name;
+        let ownerName = get(owner, 'name');
+
+        ownerName =
+            ownerName.length > 15 ? ownerName.substring(0, 11) + '...' : ownerName;
+
+        return (
+            <ListItem key={listId} activated={listId === listData.id}>
+                <ListLink
+                    className={getChildClass('list-link')}
+                    to={`/list/${listId}/edit`}
+                >
+                    <div>{linkName}</div>
+                    <div>
+                        <Icon icon="share" className={getChildClass('share-icon')} />
+                        {ownerName}
+                    </div>
+                </ListLink>
+            </ListItem>
+        );
     }
-
     return (
-        <Select
-            enhanced
-            fullWidth
-            key={selectValue}
-            label="Select List"
-            onChange={handleSelectListChange}
-            options={listOptions}
-            rootProps={{className: rootClassName}}
-            value={selectValue}
-        />
+        <div className={rootClassName}>
+            <SimpleMenu
+                className={getChildClass('menu')}
+                handle={
+                    <Button
+                        className={getChildClass('menu-button')}
+                        icon="keyboard_arrow_down"
+                    >
+                        {listData && listData.name ? listData.name : 'Select a list'}
+                    </Button>
+                }
+                style={{minWidth: '200px'}}
+            >
+                {allListsData.map(renderLink)}
+            </SimpleMenu>
+        </div>
     );
 }
 
 ListSelect.propTypes = {
     className: PropTypes.string,
     selectValue: PropTypes.string,
-    listData: PropTypes.array,
     setSelectedListId: PropTypes.func,
     userId: PropTypes.string,
 };

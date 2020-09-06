@@ -15,4 +15,20 @@
         display: flex;
         margin-bottom: $gutter;
     }
+
+    &__li {
+        align-items: center;
+        column-gap: $gutter;
+        display: grid;
+        grid-template-columns: auto 13rem auto;
+        justify-items: start;
+    }
+
+    &__li-edge {
+        flex: 0 0 auto;
+    }
+
+    &__li-center {
+        flex: 1 1 auto;
+    }
 }

@@ -1,22 +1,14 @@
 import React from 'react';
 
-// layout
-import Layout from 'components/layout/Layout';
-import Section from 'components/layout/Section';
-
 // app
-import ListsDataProvider from 'components/providers/ListsDataProvider';
-import Lists from 'components/app/lists/Lists';
+import CreateList from 'components/app/lists/CreateList';
+import ListLayout from 'components/app/lists/ListLayout';
 
 export default function IndexPage() {
     // TODO: move layout stuff to lists probably for better layout for LoginForm
     return (
-        <Layout className="home-page" title="Home">
-            <ListsDataProvider>
-                <Section centered>
-                    <Lists />
-                </Section>{' '}
-            </ListsDataProvider>
-        </Layout>
+        <ListLayout className="home-page" title="Home" activeTab={3}>
+            <CreateList />
+        </ListLayout>
     );
 }
