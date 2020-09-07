@@ -18,8 +18,8 @@ import SEO from './SEO';
 import './LoginForm.scss';
 
 const LOGIN = gql`
-    mutation LOGIN($email: String!, $password: String!, $appPassword: String!) {
-        login(email: $email, password: $password, appPassword: $appPassword) {
+    mutation LOGIN($email: String!, $password: String!) {
+        login(email: $email, password: $password) {
             accessToken
             userId
             name
@@ -28,20 +28,8 @@ const LOGIN = gql`
 `;
 
 const SIGNUP = gql`
-    mutation SIGNUP(
-        $email: String!
-        $password: String!
-        $name: String!
-        $appPassword: String!
-    ) {
-        signup(
-            input: {
-                email: $email
-                name: $name
-                password: $password
-                appPassword: $appPassword
-            }
-        ) {
+    mutation SIGNUP($email: String!, $password: String!, $name: String!) {
+        signup(input: {email: $email, name: $name, password: $password}) {
             accessToken
             userId
             name
@@ -165,15 +153,6 @@ export default function LoginForm({register}) {
                         })}
                     />
                 )}
-                <TextField
-                    {...getFieldProps({
-                        name: 'appPassword',
-                        label: 'Application Password',
-                        type: 'password',
-                    })}
-                    defaultValue="Psytrance4eva"
-                />
-
                 <Button
                     disabled={authenticating}
                     className={buttonClass}

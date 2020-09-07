@@ -8,7 +8,7 @@ export const AccountDefs = `
         sharedUsers(listId: String!): [User]! @isAuthenticated
     }
     extend type Mutation {
-        login(email: String!, password: String!, appPassword: String!): LoginResponse!
+        login(email: String!, password: String!): LoginResponse!
         logout: Boolean!
         refreshToken: RefreshResponse!
         signup(input: UserCreateInput): LoginResponse

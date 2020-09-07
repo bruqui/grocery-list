@@ -109,11 +109,7 @@ async function validateCookieSession(context) {
     return true;
 }
 
-export async function getLoginResponse({appPassword, email, password}, context) {
-    if (appPassword !== APP_PASSWORD) {
-        throw new UserInputError('USER_INVALID_APP_PASSWORD');
-    }
-
+export async function getLoginResponse({email, password}, context) {
     const user = await getUser({email}, context);
     // const tokenObject = await getSessionTokenObject(context, false);
 
@@ -138,11 +134,7 @@ export async function getLoginResponse({appPassword, email, password}, context) 
 }
 
 export async function getSignupResponse(input, context) {
-    const {appPassword, email, name, password} = input || {};
-
-    if (appPassword !== APP_PASSWORD) {
-        throw new UserInputError('USER_INVALID_APP_PASSWORD');
-    }
+    const {email, name, password} = input || {};
 
     const userExists = await getUser({email}, context);
 
