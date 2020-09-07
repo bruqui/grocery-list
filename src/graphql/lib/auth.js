@@ -9,7 +9,6 @@ import {getHashSalt, validateHash} from 'graphql/lib/encryption';
 
 const ACCESS_TOKEN_MAX_AGE = process.env.ACCESS_TOKEN_MAX_AGE;
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
-const APP_PASSWORD = process.env.APP_PASSWORD;
 const SESSION_TOKEN_MAX_AGE = Number(process.env.SESSION_TOKEN_MAX_AGE);
 const SESSION_TOKEN_SECRET = process.env.SESSION_TOKEN_SECRET;
 

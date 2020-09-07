@@ -9,6 +9,7 @@ import {useMutation} from '@apollo/react-hooks';
 import getClassName from 'tools/getClassName';
 import {required} from 'tools/fieldErrors';
 import {useAuth} from 'components/providers/AuthProvider';
+import {useGlobalLoading} from 'components/providers/LoadingProvider';
 
 import Button from 'components/core/Button';
 import LoadingSpinner from 'components/core/LoadingSpinner';
@@ -77,6 +78,7 @@ export default function LoginForm({register}) {
         },
         [authenticating, fieldErrors, required, fieldRegister]
     );
+    const {loading} = useGlobalLoading();
 
     // Go to home page once logged in and not on a page with private in the url path.
     useEffect(() => {
@@ -124,48 +126,52 @@ export default function LoginForm({register}) {
     return (
         <React.Fragment>
             <SEO title={registering ? 'Sign Up' : 'Login'} />
-            <form
-                className={rootClassName}
-                onSubmit={handleSubmit(handleOnSubmit)}
-                name="login"
-            >
-                {registering && (
-                    <TextField {...getFieldProps({name: 'name', label: 'Name'})} />
-                )}
-                <TextField {...getFieldProps({name: 'email', label: 'Email'})} />
-                <TextField
-                    {...getFieldProps({
-                        name: 'password',
-                        label: 'Password',
-                        type: 'password',
-                    })}
-                />
-                {registering && (
+            {loading ? (
+                'Loading...'
+            ) : (
+                <form
+                    className={rootClassName}
+                    onSubmit={handleSubmit(handleOnSubmit)}
+                    name="login"
+                >
+                    {registering && (
+                        <TextField {...getFieldProps({name: 'name', label: 'Name'})} />
+                    )}
+                    <TextField {...getFieldProps({name: 'email', label: 'Email'})} />
                     <TextField
                         {...getFieldProps({
-                            name: 'confirmPassword',
-                            label: 'Confirm Password',
-                            inputRef: fieldRegister({
-                                required,
-                                validate: matchesPassword,
-                            }),
+                            name: 'password',
+                            label: 'Password',
                             type: 'password',
                         })}
                     />
-                )}
-                <Button
-                    disabled={authenticating}
-                    className={buttonClass}
-                    icon={authenticating && <LoadingSpinner small />}
-                    raised
-                    type="submit"
-                >
-                    {registering ? 'create account' : 'login'}
-                </Button>
-                <Button className={buttonClass} onClick={handleLoginTypeClick}>
-                    {registering ? 'already have an account' : 'create an account'}
-                </Button>
-            </form>
+                    {registering && (
+                        <TextField
+                            {...getFieldProps({
+                                name: 'confirmPassword',
+                                label: 'Confirm Password',
+                                inputRef: fieldRegister({
+                                    required,
+                                    validate: matchesPassword,
+                                }),
+                                type: 'password',
+                            })}
+                        />
+                    )}
+                    <Button
+                        disabled={authenticating}
+                        className={buttonClass}
+                        icon={authenticating && <LoadingSpinner small />}
+                        raised
+                        type="submit"
+                    >
+                        {registering ? 'create account' : 'login'}
+                    </Button>
+                    <Button className={buttonClass} onClick={handleLoginTypeClick}>
+                        {registering ? 'already have an account' : 'create an account'}
+                    </Button>
+                </form>
+            )}
         </React.Fragment>
     );
 }

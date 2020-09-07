@@ -13,6 +13,7 @@ import Layout from 'components/layout/Layout';
 import Section from 'components/layout/Section';
 
 // app
+import Authenticated from 'components/app/Authenticated';
 import ListSelect from './ListSelect';
 
 import './ListLayout.scss';
@@ -39,23 +40,25 @@ export default function ListLayout({activeTab, children, className}) {
 
     return (
         <Layout className={rootClassName} title={tabs[activeTab].label}>
-            <Section centered className={getClass('section')}>
-                <div className={getClass('container')}>
-                    <TabBar activeTabIndex={activeTab}>
-                        {tabs.map(({icon, label}) => (
-                            <Tab
-                                key={icon}
-                                stacked
-                                icon={icon}
-                                label={label}
-                                onInteraction={handleTabInteraction}
-                            />
-                        ))}
-                    </TabBar>
-                    {activeTab < 3 && <ListSelect />}
-                    <div className={getClass('content')}>{children}</div>
-                </div>
-            </Section>
+            <Authenticated>
+                <Section centered className={getClass('section')}>
+                    <div className={getClass('container')}>
+                        <TabBar activeTabIndex={activeTab}>
+                            {tabs.map(({icon, label}) => (
+                                <Tab
+                                    key={icon}
+                                    stacked
+                                    icon={icon}
+                                    label={label}
+                                    onInteraction={handleTabInteraction}
+                                />
+                            ))}
+                        </TabBar>
+                        {activeTab < 3 && <ListSelect />}
+                        <div className={getClass('content')}>{children}</div>
+                    </div>
+                </Section>
+            </Authenticated>
         </Layout>
     );
 }

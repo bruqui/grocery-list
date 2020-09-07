@@ -6,14 +6,19 @@ import getClassName from 'tools/getClassName';
 import AddListForm from './AddListForm';
 import ListSelect from './ListSelect';
 
+import './CreateList.scss';
+
 export default function CreateList({className}) {
-    const [rootClassName] = getClassName({className, rootClass: 'create-list'});
+    const [rootClassName, getChildClass] = getClassName({
+        className,
+        rootClass: 'create-list',
+    });
 
     return (
         <div className={rootClassName}>
-            Add a new list...
+            <div className={getChildClass('content')}>Add a new list...</div>
             <AddListForm />
-            Or select one to work on...
+            <div className={getChildClass('content')}>Or select one to work on...</div>
             <ListSelect />
         </div>
     );
