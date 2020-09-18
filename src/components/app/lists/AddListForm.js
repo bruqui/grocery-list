@@ -36,6 +36,7 @@ export default function AddListForm({className}) {
             reset();
             router.push(`/list/${createList.id}/edit`);
         },
+        errorPolicy: 'all',
         refetchQueries: [allListsRefetch],
     });
 

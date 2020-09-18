@@ -110,6 +110,7 @@ async function validateCookieSession(context) {
 
 export async function getLoginResponse({email, password}, context) {
     const user = await getUser({email}, context);
+
     // const tokenObject = await getSessionTokenObject(context, false);
 
     // if (tokenObject && tokenObject.sessionId) {
@@ -154,6 +155,15 @@ export async function getSignupResponse(input, context) {
     }
 
     const {id: userId, name: userName} = user;
+
+    // Adding user to a default group where they can add users
+    context.prisma.createUserGroup({
+        name: `${userName} - Default Group`,
+        owner: {
+            connect: {id: userId},
+        },
+    });
+
     const accessToken = await getNewTokens(context, userId);
 
     return {accessToken, name: userName, userId};

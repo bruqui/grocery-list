@@ -19,12 +19,12 @@ export default function HeaderNav({className}) {
     });
     const links = [
         {
-            display: 'home',
+            display: 'lists',
             to: '/',
         },
         {
-            display: 'users',
-            to: '/users',
+            display: 'user groups',
+            to: '/user-groups',
         },
     ];
 

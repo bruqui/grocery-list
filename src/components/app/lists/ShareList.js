@@ -9,6 +9,7 @@ import {useListData} from 'components/providers/ListDataProvider';
 import {useGlobalLoading} from 'components/providers/LoadingProvider';
 
 // core
+import Link from 'components/core/Link';
 import Switch from 'components/core/Switch';
 
 import './ShareList.scss';
@@ -26,8 +27,8 @@ const SHARED_USERS = gql`
     }
 `;
 const SHARE_UNSHARE_LIST = gql`
-    mutation SHARE_UNSHARE_LIST($listId: String!, $userId: String!) {
-        shareUnshareList(listId: $listId, userId: $userId) {
+    mutation SHARE_UNSHARE_LIST($listId: String!, $userId: String!, $remove: Boolean) {
+        shareUnshareList(listId: $listId, userId: $userId, remove: $remove) {
             id
             sharedWith {
                 id
@@ -51,6 +52,7 @@ export default function ShareList({className}) {
     const [shareUnshareListMutation, {loading: loadingShareList}] = useMutation(
         SHARE_UNSHARE_LIST,
         {
+            errorPolicy: 'all',
             refetchQueries: [{query: SHARED_USERS, variables: {listId}}],
         }
     );
@@ -76,26 +78,34 @@ export default function ShareList({className}) {
     }
 
     return (
-        <ul className={rootClassName}>
-            {userData
-                .filter(({id}) => id !== userId)
-                .map(({id: userId, name: userName, sharedLists}) => (
-                    <li key={userId} className={getChildClass('li')}>
-                        <div>
-                            <Switch
-                                name={`need_${userId}`}
-                                defaultChecked={
-                                    !!sharedLists.filter(({id}) => id === listId).length
-                                }
-                                disabled={disabled}
-                                onClick={handleShareUnshareClick}
-                                value={userId}
-                            />
-                        </div>
-                        <div>{userName}</div>
-                    </li>
-                ))}
-        </ul>
+        <div className={rootClassName}>
+            <p>
+                <Link to="/user-groups" className={getChildClass('invite')}>
+                    Invite more users
+                </Link>
+            </p>
+            <ul>
+                {userData
+                    .filter(({id}) => id !== userId)
+                    .map(({id: userId, name: userName, sharedLists}) => (
+                        <li key={userId} className={getChildClass('li')}>
+                            <div>
+                                <Switch
+                                    name={`share_${userId}`}
+                                    checked={
+                                        !!sharedLists.filter(({id}) => id === listId)
+                                            .length
+                                    }
+                                    disabled={disabled}
+                                    onClick={handleShareUnshareClick}
+                                    value={userId}
+                                />
+                            </div>
+                            <div>{userName}</div>
+                        </li>
+                    ))}
+            </ul>
+        </div>
     );
 }
 

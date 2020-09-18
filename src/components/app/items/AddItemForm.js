@@ -51,6 +51,7 @@ export default function AddItemForm({className}) {
 
         //     cache.readQuery({query: ALL_ITEMS, variables: {listId}});
         // },
+        errorPolicy: 'all',
         onCompleted: async () => {
             await reset();
             nameInputRef.current.focus();

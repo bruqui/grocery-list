@@ -1,0 +1,24 @@
+@import '_base';
+
+.user-group-card {
+    margin: $gutter $gutter-small;
+    padding: $gutter-small;
+
+    &__grid {
+        align-items: center;
+        column-gap: $gutter;
+        display: grid;
+        grid-template-columns: 23rem auto;
+        justify-items: start;
+    }
+
+    &__group-section {
+        margin-top: $gutter;
+    }
+
+    &__invite-form {
+        margin-top: $gutter;
+        padding: $gutter 0;
+        border-top: 1px solid #ececec;
+    }
+}

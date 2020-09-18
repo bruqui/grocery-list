@@ -14,9 +14,36 @@ import Section from 'components/layout/Section';
 
 // app
 import Authenticated from 'components/app/Authenticated';
+import CompleteItList from 'components/app/lists/CompleteItList';
+import CreateList from 'components/app/lists/CreateList';
+import EditList from 'components/app/lists/EditList';
 import ListSelect from './ListSelect';
+import ShareList from 'components/app/lists/ShareList';
 
 import './ListLayout.scss';
+
+function renderComplete() {
+    return <CompleteItList />;
+}
+
+function renderCreateList() {
+    return <CreateList />;
+}
+
+function renderEdit() {
+    return <EditList />;
+}
+
+function renderShare() {
+    return <ShareList />;
+}
+
+const pageParams = {
+    complete: {activeTab: 0, renderComponent: renderComplete},
+    default: {activeTab: 3, renderComponent: renderCreateList},
+    edit: {activeTab: 1, renderComponent: renderEdit},
+    share: {activeTab: 2, renderComponent: renderShare},
+};
 
 const tabs = [
     {icon: 'assignment_turned_in', label: 'Complete', path: '/complete'},
@@ -25,8 +52,10 @@ const tabs = [
     {icon: 'add', label: 'Create', path: '/'},
 ];
 
-export default function ListLayout({activeTab, children, className}) {
+export default function ListLayout({className}) {
     const router = useRouter();
+    const {pageKey} = useListData();
+    const {activeTab, renderComponent} = pageParams[pageKey] || pageParams.default;
     const [rootClassName, getClass] = getClassName({className, rootClass: 'list-layout'});
     const {listId} = useListData();
 
@@ -55,7 +84,7 @@ export default function ListLayout({activeTab, children, className}) {
                             ))}
                         </TabBar>
                         {activeTab < 3 && <ListSelect />}
-                        <div className={getClass('content')}>{children}</div>
+                        <div className={getClass('content')}>{renderComponent()}</div>
                     </div>
                 </Section>
             </Authenticated>
@@ -65,7 +94,6 @@ export default function ListLayout({activeTab, children, className}) {
 
 ListLayout.propTypes = {
     activeTab: PropTypes.number,
-    children: PropTypes.node,
     className: PropTypes.string,
 };
 

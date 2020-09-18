@@ -61,10 +61,13 @@ export function useListData() {
     return useContext(ListDataContext);
 }
 
-export default function ListDataProvider({children, ...pageProps}) {
+export default function ListDataProvider({children}) {
     const router = useRouter();
     const [listId, setListId] = useState();
-    const [pageListId, pageKey] = get(router, 'query.slug', []);
+    const [pageListId, pageKey] = useMemo(
+        () => get(router, 'query.slug', [null, 'default']),
+        [router]
+    );
     const pollInterval = usePollingInterval(30000);
     const {authenticating, loggedOut, userId} = useAuth();
     const {
@@ -117,8 +120,6 @@ export default function ListDataProvider({children, ...pageProps}) {
             }
         }
     }, [allListsCalled, allListsData, allListsLoading, listId, pageListId, setListId]);
-
-    useEffect(() => {}, []);
 
     function isDisabled({ownerOnly} = {}) {
         let disabled = true;

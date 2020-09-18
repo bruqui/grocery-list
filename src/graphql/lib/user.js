@@ -11,7 +11,8 @@ export async function getUser({id, email, sessionId}, {prisma}) {
 
         user = session ? session.user : undefined;
     } else {
-        user = await prisma.user(pickBy({email, id}, isString));
+        const search = pickBy({email, id}, isString);
+        user = await prisma.user(search);
     }
 
     return user;

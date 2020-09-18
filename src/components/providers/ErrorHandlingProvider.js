@@ -18,9 +18,9 @@ export default function ErrorHandlingProvider({appActions, appState, children}) 
     const {setNotification} = useNotifications();
     const appStateError = useMemo(() => appState.error, [appState]);
     const setGraphQLError = useCallback(
-        ({graphQLErrors}, {messagePrefix, ttl = -1} = {}) => {
-            if (graphQLErrors && graphQLErrors.length) {
-                graphQLErrors.map(({message, ...rest}, index) => {
+        ({graphqlErrors}, {messagePrefix, ttl = -1} = {}) => {
+            if (graphqlErrors && graphqlErrors.length) {
+                graphqlErrors.map(({message, ...rest}, index) => {
                     // eslint-disable-next-line import/namespace
                     const graphQLErrorMessage = errorResponses[message] || message;
                     const notificationMessage = messagePrefix

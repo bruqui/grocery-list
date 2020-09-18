@@ -7,8 +7,10 @@ type User {
     name: String!
     lists: [List] @relation(name: "ListUser", onDelete: CASCADE)
     sharedLists: [List] @relation(name: "SharedLists", onDelete: CASCADE)
+    userGroups: [UserGroup] @relation(name: "UserGroup", onDelete: CASCADE)
     sessions: [UserSession]! @relation(onDelete: CASCADE)
     updatedAt: DateTime! @updatedAt
+    myGroups: [UserGroup] @relation(name: "UserGroupOwner", onDelete: CASCADE)
 }
 
 type UserSession {
@@ -18,6 +20,24 @@ type UserSession {
     user: User! @relation(link: INLINE)
 }
 
+type UserGroup {
+    id: ID! @id
+    createdAt: DateTime! @createdAt
+    users: [User!]! @relation(link: TABLE, name: "UserUserGroup")
+    owner: User! @relation(name: "UserGroupOwner")
+    name: String!
+    updatedAt: DateTime! @updatedAt
+    invites: [UserGroupInvite]! @relation(name: "UserGroupInvites", onDelete: CASCADE)
+}
+
+type UserGroupInvite {
+    id: ID! @id
+    createdAt: DateTime! @createdAt
+    email: String!
+    updatedAt: DateTime! @updatedAt
+    userGroup: UserGroup! @relation(link: INLINE, name: "UserGroupInvites")
+}
+
 type List {
     id: ID! @id
     createdAt: DateTime! @createdAt
@@ -25,7 +45,7 @@ type List {
     collaborated: Boolean! @default(value: false)
     name: String!
     owner: User! @relation(link: INLINE, name: "ListUser")
-    sharedWith: [User]! @relation(link: TABLE, name: "SharedLists", onDelete: CASCADE)
+    sharedWith: [User] @relation(link: TABLE, name: "SharedLists", onDelete: CASCADE)
     items: [Item]! @relation(onDelete: CASCADE)
 }
 

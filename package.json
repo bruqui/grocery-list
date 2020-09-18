@@ -61,6 +61,7 @@
         "@rmwc/switch": "^6.1.3",
         "@rmwc/tabs": "^6.1.3",
         "@rmwc/textfield": "^6.1.3",
+        "@sendgrid/mail": "^7.2.5",
         "@webdeb/next-styles": "^1.1.0",
         "@zeit/next-css": "^1.0.1",
         "@zeit/next-sass": "^1.0.1",

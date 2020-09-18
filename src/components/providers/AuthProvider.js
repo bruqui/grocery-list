@@ -33,6 +33,7 @@ export function useAuth() {
 export function useLogout() {
     const {handleLoggedOut, setError, authenticated} = useContext(AuthContext);
     const [logout] = useMutation(LOGOUT, {
+        errorPolicy: 'all',
         onCompleted: handleLoggedOut,
         onError: handleLogoutError,
     });
@@ -131,6 +132,7 @@ export default function AuthProvider({apolloClient, appActions, appState, childr
     }
 
     const providerValues = {
+        appAuthenticated,
         clearNotification,
         handleLoggedIn,
         handleLoggedOut,

@@ -48,11 +48,10 @@ function createIsomorphLink(
         });
 
         const errorLink = onError((error) => {
-            console.error('APOLLO_ON_ERROR: ', error);
             const graphqlErrors = get(error, 'graphQLErrors');
 
             if (graphqlErrors) {
-                appError({graphqlErrors});
+                appError({error: {graphqlErrors}});
             }
         });
 

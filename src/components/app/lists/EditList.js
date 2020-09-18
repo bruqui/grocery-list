@@ -58,17 +58,21 @@ export default function EditList({children, className}) {
     const [rootClassName, getClass] = getClassName({className, rootClass: 'edit-list'});
     const {isDisabled, itemsData, listData, listId, listRefetch} = useListData();
     const [deleteListMutation, {loading: deleteListLoading}] = useMutation(DELETE_LIST, {
+        errorPolicy: 'all',
         variables: {listId},
         refetchQueries: listRefetch ? [listRefetch] : undefined,
     });
     const [updateListMutation, {loading: updateListLoading}] = useMutation(UPDATE_LIST, {
+        errorPolicy: 'all',
         variables: {listId},
         refetchQueries: listRefetch ? [listRefetch] : undefined,
     });
     const [updateItemMutation, {loading: updateItemLoading}] = useMutation(UPDATE_ITEM, {
+        errorPolicy: 'all',
         refetchQueries: listRefetch ? [listRefetch] : undefined,
     });
     const [deleteItemMutation, {loading: deleteItemLoading}] = useMutation(DELETE_ITEM, {
+        errorPolicy: 'all',
         refetchQueries: listRefetch ? [listRefetch] : undefined,
     });
 

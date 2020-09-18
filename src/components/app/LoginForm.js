@@ -51,6 +51,7 @@ export default function LoginForm({register}) {
         setError,
     } = useAuth();
     const [loginMutation] = useMutation(mutation, {
+        errorPolicy: 'all',
         onCompleted: handleLoggedIn,
         onError: handleError,
     });

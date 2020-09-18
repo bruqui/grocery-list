@@ -45,9 +45,10 @@ export default function CompleteItList({className}) {
     const neededItemsData = useMemo(() => itemsData.filter(({need}) => need) || []);
     const [updateItemsMutation, {loading: updateItemsLoading}] = useMutation(
         UPDATE_ITEMS,
-        {refetchQueries: listRefetch ? [listRefetch] : undefined}
+        {errorPolicy: 'all', refetchQueries: listRefetch ? [listRefetch] : undefined}
     );
     const [updateItemMutation, {loading: updateItemLoading}] = useMutation(UPDATE_ITEM, {
+        errorPolicy: 'all',
         refetchQueries: listRefetch ? [listRefetch] : undefined,
     });
 

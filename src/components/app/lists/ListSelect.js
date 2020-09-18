@@ -79,7 +79,11 @@ export default function ListSelect({className, selectValue, setSelectedListId, u
                 }
                 style={{minWidth: '200px'}}
             >
-                {allListsData.map(renderLink)}
+                {allListsData && allListsData.length ? (
+                    allListsData.map(renderLink)
+                ) : (
+                    <ListItem>No lists availalable</ListItem>
+                )}
             </SimpleMenu>
         </div>
     );
