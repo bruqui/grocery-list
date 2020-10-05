@@ -123,6 +123,7 @@ export const accountResolvers = {
             const userId = await getUserId(context);
             const user = await getUser({id: userId}, context);
             const invitee = await getUser({email}, context);
+            let sendgridResponse;
 
             const invites = await context.prisma.userInvites({
                 where: {
@@ -147,7 +148,7 @@ export const accountResolvers = {
                 throw new ApolloError('Could not create an invitation', 'UI_ERROR');
             }
 
-            if (invitee.id) {
+            if (invitee && invitee.id) {
                 context.prisma.createNotification({
                     message: `${user.name} has sent you an invitation to connect.`,
                     user: {connect: {id: invitee.id}},
@@ -155,10 +156,21 @@ export const accountResolvers = {
             }
 
             if (typeof invite.id === 'string') {
-                await sendEmail({email, inviteId: invite.id}, user, context);
+                sendgridResponse = await sendEmail(
+                    {email, inviteId: invite.id},
+                    user,
+                    context
+                );
+
+                if (typeof sendgridResponse === 'object') {
+                    sendgridResponse = JSON.stringify(sendgridResponse);
+                }
+
+                // eslint-disable-next-line no-console
+                console.log('SENDGRID_RESPONSE', sendgridResponse);
             }
 
-            return invite;
+            return {...invite, sendgridResponse};
         },
         deleteInvite: (parent, {inviteId}, context) => {
             return context.prisma.deleteUserInvite({id: inviteId});
