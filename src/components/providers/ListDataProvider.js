@@ -124,11 +124,19 @@ export default function ListDataProvider({children}) {
         }
 
         // If there are no lists, then set the listId to undefined and go to create
-        if (!allListsLoading && allListsCalled && !allListsData.length) {
+        if (!allListsLoading && allListsCalled && listId && !allListsData.length) {
             setListId(undefined);
             router.replace('/list/create');
         }
-    }, [listId, pageListId, setListId]);
+    }, [
+        allListsCalled,
+        allListsData,
+        allListsLoading,
+        listId,
+        pageListId,
+        router,
+        setListId,
+    ]);
 
     useEffect(() => {
         if (!allListsLoading && allListsCalled) {

@@ -41,6 +41,7 @@ export const AccountDefs = `
         id: ID!
         email: String!
         owner: User!
+        sendgridResponse: String
     }
     type LoginResponse {
         accessToken: String!

@@ -15,6 +15,8 @@ const INVITE_USER = gql`
     mutation INVITE_USER($email: String!) {
         inviteUser(email: $email) {
             id
+            email
+            sendgridResponse
         }
     }
 `;

@@ -71,18 +71,18 @@ export default function ShareList({className}) {
 
     function renderSharedUsers({id: shareUserId, name: shareUserName}) {
         return (
-            <React.Fragment key={shareUserId}>
-                <div>
-                    <Switch
-                        checked={!!sharedWithUsers.filter(({id}) => id === listId).length}
-                        disabled={disabled}
-                        label={shareUserName}
-                        name={`share_${shareUserId}`}
-                        onClick={handleShareUnshareClick}
-                        value={shareUserId}
-                    />
-                </div>
-            </React.Fragment>
+            <div key={shareUserId}>
+                <Switch
+                    checked={
+                        !!sharedWithUsers.filter(({id}) => id === shareUserId).length
+                    }
+                    disabled={disabled}
+                    label={shareUserName}
+                    name={`share_${shareUserId}`}
+                    onClick={handleShareUnshareClick}
+                    value={shareUserId}
+                />
+            </div>
         );
     }
 
