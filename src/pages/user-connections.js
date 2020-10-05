@@ -7,21 +7,21 @@ import getClassName from 'tools/getClassName';
 import Layout from 'components/layout/Layout';
 
 // app
+import UserConnections from 'components/app/users/UserConnections';
 import Authenticated from 'components/app/Authenticated';
-import JoinGroup from 'components/app/users/JoinGroup';
 
-export default function JoinGroupPage({className}) {
-    const [rootClassName] = getClassName({className, rootClass: 'join-group-page'});
+export default function ConnectionsPage({className}) {
+    const [rootClassName] = getClassName({className, rootClass: 'connections-page'});
 
     return (
-        <Layout className={rootClassName} title="Join Group">
+        <Layout className={rootClassName}>
             <Authenticated>
-                <JoinGroup />
+                <UserConnections />
             </Authenticated>
         </Layout>
     );
 }
 
-JoinGroupPage.propTypes = {
+ConnectionsPage.propTypes = {
     className: PropTypes.string,
 };

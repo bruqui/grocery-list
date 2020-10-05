@@ -20,7 +20,12 @@ export default function Header({className}) {
             <div className={getChildClass('left')}>
                 <HeaderNav className={getChildClass('nav')} />
                 <Headline className={getChildClass('headline')} level={1}>
-                    <Link className={getChildClass('link')} to="/" noUnderline onPrimary>
+                    <Link
+                        className={getChildClass('link')}
+                        href="/"
+                        noUnderline
+                        onPrimary
+                    >
                         {SITE_NAME}
                     </Link>
                 </Headline>

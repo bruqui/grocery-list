@@ -1,4 +1,5 @@
 import {ApolloError, ForbiddenError} from 'apollo-server-micro';
+import {get} from 'lodash';
 
 import {
     getLoginResponse,
@@ -11,16 +12,16 @@ import {getHashSalt} from 'graphql/lib/encryption';
 import sendEmail from 'graphql/lib/sendgrid';
 
 const allUsersFragement = `{
-                id
-                name
-                email
-                lists {
-                    id
-                }
-                sharedLists {
-                    id
-                }
-            }`;
+    id
+    name
+    email
+    lists {
+        id
+    }
+    sharedLists {
+        id
+    }
+}`;
 
 // Not sure why eslint doesn't think it's imported.
 // eslint-disable-next-line import/no-unused-modules
@@ -40,83 +41,38 @@ export const accountResolvers = {
         allUsers: (parent, args, context) => {
             return context.prisma.users().$fragment(allUsersFragement);
         },
-        sharedUsers: async (parent, {listId}, context) => {
-            const userId = await getUserId(context);
-
-            return context.prisma
-                .users({
-                    where: {
-                        AND: [
-                            {id_not: 'cke3crf920a2o0803zqew99tu'},
-                            {userGroups_every: {id: 'cke3crf920a2o0803zqew99tu'}},
-                        ],
-                    },
-                })
-                .$fragment(allUsersFragement);
+        userInvite: (parent, {inviteId}, context) => {
+            return context.prisma.userInvite({id: inviteId});
         },
-        groupsWithUsers: async (parent, args, context) => {
+        invites: async (parent, args, context) => {
             const userId = await getUserId(context);
+            const {email} = await getUser({id: userId}, context);
 
-            const userGroups = await context.prisma.userGroups({
-                where: {
-                    OR: [{owner: {id: userId}}, {users_some: {id: userId}}],
-                },
-            }).$fragment(`
-                {
-                    id
-                    name
-                    owner {
-                        id
-                        name
-                    }
-                    users {
-                        id
-                        email
-                        name
-                    }
-                    invites {
-                        id
-                        email
-                    }
-                }
-            `);
-
-            return userGroups && userGroups.length
-                ? userGroups.map((group) => {
-                      return {
-                          ...group,
-                          owned: userId === group.owner.id,
-                      };
-                  })
-                : [];
-        },
-        userGroup: (parent, {groupId}, context) => {
-            return (
-                context.prisma.userGroup({id: groupId}).$fragment(`
-            {
+            return context.prisma.userInvites({where: {email}}).$fragment(`{
                 id
-                name
                 owner {
                     id
                     name
                 }
-            }
-            `) || {owner: {id: null, name: null}}
-            );
+            }`);
         },
-        userGroupInvite: (parent, {inviteId}, context) => {
-            return context.prisma.userGroupInvite({id: inviteId}).$fragment(`
-            {
-                id
-                userGroup {
+        userConnections: async (parent, args, context) => {
+            const userId = await getUserId(context);
+
+            const user = await context.prisma.user({id: userId}).$fragment(`{
+                id,
+                connections {
                     id
+                    email
                     name
-                    owner {
-                        name
-                    }
                 }
-            }
-            `);
+                invites {
+                    id
+                    email
+                }
+            }`);
+
+            return user;
         },
     },
     MUTATION: {
@@ -162,125 +118,102 @@ export const accountResolvers = {
                 where: {id: userId},
             });
         },
-        createUserGroup: async (parent, args, context) => {
-            const userId = await getUserId(context);
-
-            return context.prisma.createUserGroup({
-                ...args,
-                owner: {
-                    connect: {id: userId},
-                },
-            });
-        },
-        deleteUserGroup: async (parent, {groupId}, context) => {
-            return context.prisma.deleteUserGroup({id: groupId});
-        },
-        inviteUser: async (parent, {email, groupId, groupName}, context) => {
-            let invitation;
+        inviteUser: async (parent, {email}, context) => {
+            let invite;
             const userId = await getUserId(context);
             const user = await getUser({id: userId}, context);
+            const invitee = await getUser({email}, context);
 
-            const invitations = await context.prisma.userGroupInvites({
+            const invites = await context.prisma.userInvites({
                 where: {
-                    userGroup: {id: groupId},
-                    email,
+                    AND: [{email}, {owner: {id: userId}}],
                 },
             });
 
-            invitation =
-                invitations && invitations.length
-                    ? invitations[0]
-                    : await context.prisma.createUserGroupInvite({
-                          email,
-                          userGroup: {connect: {id: groupId}},
-                      });
-
-            if (!invitation || !invitation.id) {
-                throw new ApolloError('The invitation was not created.', 'UI_ERROR', {
-                    invitation,
+            // if invite doesn't exist, create a new one; otherwise, just use
+            // the existing one. This is so there aren't multiple invite records
+            // going out to the same user and gives an inviter an opportunity to
+            // resend the invite
+            if (invites && invites.length) {
+                invite = invites[0];
+            } else {
+                invite = await context.prisma.createUserInvite({
+                    email,
+                    owner: {connect: {id: userId}},
                 });
             }
 
-            await sendEmail({inviteId: invitation.id, email, groupName}, user, context);
+            if (!invite) {
+                throw new ApolloError('Could not create an invitation', 'UI_ERROR');
+            }
 
-            return invitation;
+            if (invitee.id) {
+                context.prisma.createNotification({
+                    message: `${user.name} has sent you an invitation to connect.`,
+                    user: {connect: {id: invitee.id}},
+                });
+            }
+
+            if (typeof invite.id === 'string') {
+                await sendEmail({email, inviteId: invite.id}, user, context);
+            }
+
+            return invite;
         },
-        joinGroup: async (parent, {accept, inviteId}, context) => {
-            let addToUserGroup;
+        deleteInvite: (parent, {inviteId}, context) => {
+            return context.prisma.deleteUserInvite({id: inviteId});
+        },
+        acceptInvite: async (parent, {inviteId}, context) => {
             const userId = await getUserId(context);
             const user = await getUser({id: userId}, context);
-            const invitation = await context.prisma
-                .userGroupInvite({id: inviteId})
-                .$fragment(`{email, userGroup {id}}`);
-
-            if (!invitation) {
-                throw new ApolloError('Invitation could not be found', 'UI_ERROR');
-            }
-
-            if (user.email !== invitation.email) {
-                throw new ApolloError(
-                    `Email address on the invitation (${invitation.email}) does not match email address used to log in (${user.email}).`,
-                    'UI_ERROR'
-                );
-            }
-
-            const groupId = invitation.userGroup.id;
-
-            if (accept && groupId) {
-                addToUserGroup = await context.prisma.updateUserGroup({
-                    where: {id: groupId},
-                    data: {users: {connect: {id: userId}}},
-                }).$fragment(`{
+            const invite = await context.prisma.userInvite({id: inviteId}).$fragment(`{
+                id
+                owner {
                     id
-                    users {
-                        id
-                        name
-                    }
-                }`);
+                    name
+                }
+            }`);
+
+            const inviteUserId = get(invite, 'owner.id');
+
+            if (!inviteUserId) {
+                throw new ApolloError('Could not locate invitation', 'UI_ERROR');
             }
 
-            if (!addToUserGroup) {
-                throw new ApolloError(
-                    'There was a problem adding the user to the group',
-                    'UI_ERROR'
-                );
-            }
-
-            await context.prisma.deleteUserGroupInvite({id: inviteId});
-
-            return addToUserGroup;
-        },
-        unjoinGroup: async (parent, {groupId}, context) => {
-            const userId = await getUserId(context);
-
-            return context.prisma.updateUserGroup({
-                where: {groupId},
-                data: {users: {disconnect: {id: userId}}},
-            });
-        },
-        deleteInvite: async (parent, {inviteId}, context) => {
-            return context.prisma.deleteUserGroupInvite({id: inviteId});
-        },
-        deleteUserFromGroup: async (parent, {userId, groupId}, context) => {
-            const myUserId = await getUserId(context);
-            const deleteResponse = await context.prisma.updateUserGroup({
-                where: {id: groupId},
-                data: {users: {disconnect: {id: userId}}},
-            });
-            // find any groups with this user
-            const userInMyGroups = await context.prisma.userGroups({
-                where: {users_some: {id: userId}, owner: {id: myUserId}},
+            const updateInvitee = await context.prisma.updateUser({
+                where: {id: inviteUserId},
+                data: {connections: {connect: {id: userId}}},
             });
 
-            // Remove user from any of my lists if it is not a part of userInMyGroups any more
-            if (deleteResponse && !(userInMyGroups && userInMyGroups.length)) {
-                context.prisma.updateManyLists({
-                    where: {owner: {id: myUserId}},
-                    data: {sharedWith: {disconnect: {id: userId}}},
+            const updateInviter = await context.prisma.updateUser({
+                where: {id: userId},
+                data: {connections: {connect: {id: inviteUserId}}},
+            });
+
+            if (updateInvitee && updateInviter) {
+                await context.prisma.deleteUserInvite({id: inviteId});
+                await context.prisma.createNotification({
+                    message: `You are now connected with ${user.name}.`,
+                    user: {connect: {id: inviteUserId}},
                 });
             }
 
-            return deleteResponse;
+            return [updateInvitee, updateInviter];
+        },
+        deleteConnection: async (parent, {connectionUserId}, context) => {
+            const userId = await getUserId(context);
+
+            const myDelete = await context.prisma.updateUser({
+                where: {id: userId},
+                data: {connections: {disconnect: {id: connectionUserId}}},
+            });
+
+            const theirDelete = await context.prisma.updateUser({
+                where: {id: connectionUserId},
+                data: {connections: {disconnect: {id: userId}}},
+            });
+
+            return [myDelete, theirDelete];
         },
     },
 };

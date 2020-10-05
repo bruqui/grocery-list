@@ -13,7 +13,7 @@ export default function Custom404() {
         <Layout className="custom-404-page" title="404">
             <Section cendered padding>
                 <Headline level={2}>Page not found</Headline>
-                <Link to="/">Back to home</Link>
+                <Link href="/">Back to home</Link>
             </Section>
         </Layout>
     );

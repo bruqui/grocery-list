@@ -1,8 +1,22 @@
 @import '_base';
 
+$spinner-size: 2rem;
+
 .switch {
+    display: inline-flex;
+    position: relative;
+
+    &__spinner {
+        color: rgba(0, 0, 0, 0.4);
+        font-size: $spinner-size !important;
+        height: $spinner-size;
+        position: absolute;
+        width: $spinner-size;
+        z-index: 1;
+    }
+
     &--full-width {
-        margin: $gutter-small;
+        min-height: 2rem;
         width: 100%;
     }
 

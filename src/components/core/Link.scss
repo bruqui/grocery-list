@@ -25,6 +25,8 @@
     }
 
     &--area-link {
+        outline: none;
+
         &:after {
             // a11y styling trick to cover the entire report area so any part of it can be clicked.
             content: '';
@@ -33,6 +35,12 @@
             position: absolute;
             top: 0;
             width: 100%;
+            z-index: 0;
+        }
+
+        &:focus,
+        &:hover {
+            text-decoration: underline;
         }
     }
 

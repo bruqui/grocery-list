@@ -6,11 +6,18 @@ type User {
     salt: String!
     name: String!
     lists: [List] @relation(name: "ListUser", onDelete: CASCADE)
-    sharedLists: [List] @relation(name: "SharedLists", onDelete: CASCADE)
-    userGroups: [UserGroup] @relation(name: "UserGroup", onDelete: CASCADE)
+    sharedLists: [List] @relation(name: "SharedLists")
     sessions: [UserSession]! @relation(onDelete: CASCADE)
     updatedAt: DateTime! @updatedAt
-    myGroups: [UserGroup] @relation(name: "UserGroupOwner", onDelete: CASCADE)
+    connections: [User]! @relation(link: TABLE, name: "Connections")
+    invites: [UserInvite]! @relation(name: "UserUserInvite", onDelete: CASCADE)
+    notifications: [Notification]! @relation(name: "UserNotification", onDelete: CASCADE)
+}
+
+type UserInvite {
+    id: ID! @id
+    email: String!
+    owner: User! @relation(link: INLINE, name: "UserUserInvite")
 }
 
 type UserSession {
@@ -18,24 +25,6 @@ type UserSession {
     createdAt: DateTime! @createdAt
     ttl: Int!
     user: User! @relation(link: INLINE)
-}
-
-type UserGroup {
-    id: ID! @id
-    createdAt: DateTime! @createdAt
-    users: [User!]! @relation(link: TABLE, name: "UserUserGroup")
-    owner: User! @relation(name: "UserGroupOwner")
-    name: String!
-    updatedAt: DateTime! @updatedAt
-    invites: [UserGroupInvite]! @relation(name: "UserGroupInvites", onDelete: CASCADE)
-}
-
-type UserGroupInvite {
-    id: ID! @id
-    createdAt: DateTime! @createdAt
-    email: String!
-    updatedAt: DateTime! @updatedAt
-    userGroup: UserGroup! @relation(link: INLINE, name: "UserGroupInvites")
 }
 
 type List {
@@ -57,4 +46,11 @@ type Item {
     need: Boolean! @default(value: false)
     purchased: Boolean! @default(value: false)
     updatedAt: DateTime! @updatedAt
+}
+
+type Notification {
+    id: ID! @id
+    createdAt: DateTime! @createdAt
+    message: String!
+    user: User @relation(link: INLINE, name: "UserNotification")
 }

@@ -1,0 +1,19 @@
+@import '_base';
+
+.item-list {
+    &__row {
+        align-items: center;
+        column-gap: $gutter;
+        display: grid;
+        grid-template-columns: 3fr 1fr;
+        justify-items: start;
+
+        div:last-child {
+            justify-self: end;
+        }
+
+        div:first-child {
+            justify-self: start;
+        }
+    }
+}

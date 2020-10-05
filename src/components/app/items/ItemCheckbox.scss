@@ -1,9 +1,32 @@
 @import '_colors';
 
+$spinner-size: 2rem;
+
 .item-checkbox {
-    color: #ececec !important;
+    align-items: center;
+    display: inline-flex;
+    position: relative;
+
+    &__spinner {
+        color: rgba(0, 0, 0, 0.4);
+        font-size: $spinner-size !important;
+        height: $spinner-size;
+        left: 0.5rem;
+        position: absolute;
+        top: 0.5rem;
+        width: $spinner-size;
+        z-index: 1;
+    }
+
+    &__button {
+        color: #ececec !important;
+    }
 
     &--purchased {
-        color: $color-primary !important;
+        .item-checkbox {
+            &__button {
+                color: $color-primary !important;
+            }
+        }
     }
 }

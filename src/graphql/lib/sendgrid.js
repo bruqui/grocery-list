@@ -4,25 +4,25 @@ import sgMail from '@sendgrid/mail';
 import {get} from 'lodash';
 
 export default async function sendEmail(
-    {email, inviteId, groupName},
+    {email, inviteId},
     {email: userEmail, name},
     {req}
 ) {
     let sgResponse;
     const host = get(req, 'headers.host', '');
     const http = host.includes('localhost') ? 'http://' : 'https://';
-    const groupLink = `${http}${host}/join-group/${inviteId}`;
-    const inviteText = `${name} is inviting you to join their group on the Lists Master application by The BEhive`;
+    const inviteLink = `${http}${host}/user-connections?invitation=${inviteId}`;
+    const inviteText = `${name} would like to connect with you on the Lists Master application by The BEhive`;
     const msg = {
         to: email,
         from: 'ot@bsmithstudio.com',
         subject: `${name} has sent you an invitation`,
-        text: `${inviteText}... ${groupLink}`,
+        text: `${inviteText}... ${inviteLink}`,
         html: `
             <div>
                 <p>${inviteText}</p>
-                <p>Join the <a href="${groupLink}">${groupName} from ${name}</a></p>
-                <p><a href="${groupLink}">${groupLink}</a></p>
+                <p>Connect with <a href="${inviteLink}">${name}</a></p>
+                <p><a href="${inviteLink}">${inviteLink}</a></p>
             </div>
         `,
     };

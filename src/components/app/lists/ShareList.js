@@ -7,25 +7,18 @@ import {useMutation, useQuery} from '@apollo/react-hooks';
 import getClassName from 'tools/getClassName';
 import {useListData} from 'components/providers/ListDataProvider';
 import {useGlobalLoading} from 'components/providers/LoadingProvider';
+import {USER_CONNECTIONS} from 'components/app/users/UserConnections';
 
 // core
 import Link from 'components/core/Link';
 import Switch from 'components/core/Switch';
 
+// layout
+import SimpleRecordGrid from 'components/layout/SimpleRecordGrid';
+
+// app
 import './ShareList.scss';
 
-const SHARED_USERS = gql`
-    query SHARED_USERS($listId: String!) {
-        sharedUsers(listId: $listId) {
-            id
-            name
-            email
-            sharedLists {
-                id
-            }
-        }
-    }
-`;
 const SHARE_UNSHARE_LIST = gql`
     mutation SHARE_UNSHARE_LIST($listId: String!, $userId: String!, $remove: Boolean) {
         shareUnshareList(listId: $listId, userId: $userId, remove: $remove) {
@@ -42,30 +35,29 @@ export default function ShareList({className}) {
         className,
         rootClass: 'share-list',
     });
-    const {isDisabled, listId, userId} = useListData();
-    const {loading: loadingUsers, data: usersResponse} = useQuery(SHARED_USERS, {
-        skip: !listId,
-        variables: {
-            listId,
-        },
-    });
+    const {isDisabled, listId, listData, listRefetch} = useListData();
+    const {
+        called: connectionsCalled,
+        data: connectionsDataResponse,
+        loading: connectionsLoading,
+    } = useQuery(USER_CONNECTIONS, {pollInterval: 10000, errorPolicy: 'all'});
+    const connectionsData = useMemo(() => {
+        return connectionsCalled
+            ? get(connectionsDataResponse, 'userConnections.connections', [])
+            : [];
+    }, [connectionsCalled, connectionsDataResponse]);
+    const sharedWithUsers = useMemo(() => get(listData, 'sharedWith', []), [listData]);
     const [shareUnshareListMutation, {loading: loadingShareList}] = useMutation(
         SHARE_UNSHARE_LIST,
         {
             errorPolicy: 'all',
-            refetchQueries: [{query: SHARED_USERS, variables: {listId}}],
+            refetchQueries: [listRefetch],
         }
     );
-    const userData = useMemo(() => get(usersResponse, 'sharedUsers', []), [
-        usersResponse,
-    ]);
-    const disabled = useMemo(() => isDisabled({ownerOnly: true}) || loadingUsers, [
-        isDisabled,
-        loadingUsers,
-    ]);
+    const disabled = useMemo(() => isDisabled({ownerOnly: true}), [isDisabled]);
 
+    useGlobalLoading('connectionsLoading', connectionsLoading);
     useGlobalLoading('loadingShareList', loadingShareList);
-    useGlobalLoading('loadingUsers', loadingUsers);
 
     function handleShareUnshareClick(event) {
         shareUnshareListMutation({
@@ -77,34 +69,40 @@ export default function ShareList({className}) {
         });
     }
 
+    function renderSharedUsers({id: shareUserId, name: shareUserName}) {
+        return (
+            <React.Fragment key={shareUserId}>
+                <div>
+                    <Switch
+                        checked={!!sharedWithUsers.filter(({id}) => id === listId).length}
+                        disabled={disabled}
+                        label={shareUserName}
+                        name={`share_${shareUserId}`}
+                        onClick={handleShareUnshareClick}
+                        value={shareUserId}
+                    />
+                </div>
+            </React.Fragment>
+        );
+    }
+
     return (
         <div className={rootClassName}>
-            <p>
-                <Link to="/user-groups" className={getChildClass('invite')}>
-                    Invite more users
-                </Link>
-            </p>
-            <ul>
-                {userData
-                    .filter(({id}) => id !== userId)
-                    .map(({id: userId, name: userName, sharedLists}) => (
-                        <li key={userId} className={getChildClass('li')}>
-                            <div>
-                                <Switch
-                                    name={`share_${userId}`}
-                                    checked={
-                                        !!sharedLists.filter(({id}) => id === listId)
-                                            .length
-                                    }
-                                    disabled={disabled}
-                                    onClick={handleShareUnshareClick}
-                                    value={userId}
-                                />
-                            </div>
-                            <div>{userName}</div>
-                        </li>
-                    ))}
-            </ul>
+            {disabled ? (
+                'This list must belong to you to choose who to share with.'
+            ) : (
+                <React.Fragment>
+                    <p>
+                        <Link href="/user-groups" className={getChildClass('invite')}>
+                            Invite more users
+                        </Link>
+                    </p>
+                    <SimpleRecordGrid
+                        records={connectionsData}
+                        renderRow={renderSharedUsers}
+                    />
+                </React.Fragment>
+            )}
         </div>
     );
 }

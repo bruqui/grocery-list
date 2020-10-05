@@ -157,7 +157,7 @@ export async function getSignupResponse(input, context) {
     const {id: userId, name: userName} = user;
 
     // Adding user to a default group where they can add users
-    context.prisma.createUserGroup({
+    await context.prisma.createUserGroup({
         name: `${userName} - Default Group`,
         owner: {
             connect: {id: userId},

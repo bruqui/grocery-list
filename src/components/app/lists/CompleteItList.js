@@ -14,6 +14,9 @@ import Switch from 'components/core/Switch';
 // app
 import ItemCheckbox from 'components/app/items/ItemCheckbox';
 
+// layout
+import SimpleRecordGrid from 'components/layout/SimpleRecordGrid';
+
 import './CompleteItList.scss';
 
 const UPDATE_ITEMS = gql`
@@ -42,7 +45,9 @@ export default function CompleteItList({className}) {
     });
     const [clearFromNeed, setClearFromNeed] = useState(false);
     const {listRefetch, itemsData} = useListData();
-    const neededItemsData = useMemo(() => itemsData.filter(({need}) => need) || []);
+    const neededItemsData = useMemo(() => itemsData.filter(({need}) => need) || [], [
+        itemsData,
+    ]);
     const [updateItemsMutation, {loading: updateItemsLoading}] = useMutation(
         UPDATE_ITEMS,
         {errorPolicy: 'all', refetchQueries: listRefetch ? [listRefetch] : undefined}
@@ -53,7 +58,6 @@ export default function CompleteItList({className}) {
     });
 
     useGlobalLoading('updateItemsLoading', updateItemsLoading);
-    useGlobalLoading('updateItemLoading', updateItemLoading);
 
     function handleClearFromNeedClick(event) {
         setClearFromNeed(event.currentTarget.checked);
@@ -77,6 +81,22 @@ export default function CompleteItList({className}) {
         });
     }
 
+    function renderRow({id: itemId, name, purchased}) {
+        return (
+            <React.Fragment>
+                <div>
+                    <ItemCheckbox
+                        clearFromNeed={clearFromNeed}
+                        updateItemLoading={updateItemLoading}
+                        itemId={itemId}
+                        label={name}
+                        purchased={purchased}
+                        onChange={handlePurchasedClick}
+                    />
+                </div>
+            </React.Fragment>
+        );
+    }
     return (
         <div className={rootClassName}>
             <div className={getClass('complete-actions')}>
@@ -93,21 +113,7 @@ export default function CompleteItList({className}) {
                 />
             </div>
             {neededItemsData && neededItemsData.length ? (
-                <ul>
-                    {neededItemsData.map(({id: itemId, name, purchased}) => (
-                        <li className={getClass('li')} key={itemId}>
-                            <div>
-                                <ItemCheckbox
-                                    clearFromNeed={clearFromNeed}
-                                    itemId={itemId}
-                                    purchased={purchased}
-                                    onChange={handlePurchasedClick}
-                                />
-                            </div>
-                            <div>{name}</div>
-                        </li>
-                    ))}
-                </ul>
+                <SimpleRecordGrid records={neededItemsData} renderRow={renderRow} />
             ) : (
                 <div className={getClass('no-items')}>
                     No items available. Please go to edit tab to add to this list.

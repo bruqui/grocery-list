@@ -64,7 +64,7 @@ export function useListData() {
 export default function ListDataProvider({children}) {
     const router = useRouter();
     const [listId, setListId] = useState();
-    const [pageListId, pageKey] = useMemo(
+    const [pageKey, pageListId] = useMemo(
         () => get(router, 'query.slug', [null, 'default']),
         [router]
     );
@@ -106,20 +106,46 @@ export default function ListDataProvider({children}) {
 
     useEffect(() => {
         // If a pageListId is set, check if it exists in the list and set it as the
-        // listId.  If not, set it to the first record in the list. If a list doesn't exit,
-        // go back to the index page.
-        if (pageListId && pageListId !== listId) {
-            if (allListsData.length) {
-                if (allListsData.find(({id}) => id === pageListId)) {
-                    setListId(pageListId);
-                } else {
-                    setListId(allListsData[0].id);
-                }
-            } else if (!allListsLoading && allListsCalled) {
-                router.replace('/');
+        // listId.  If not, go to the home page.
+        if (
+            !allListsLoading &&
+            pageListId &&
+            pageListId !== listId &&
+            allListsData.length
+        ) {
+            // if the pageListId exists in the data set the listId to the pageListId
+            if (allListsData.find(({id}) => id === pageListId)) {
+                setListId(pageListId);
+            } else {
+                // if a pageListId didn't exist in the data, then figure out next listId or
+                // set it to undefined
+                setListId(allListsData[0].id);
             }
         }
-    }, [allListsCalled, allListsData, allListsLoading, listId, pageListId, setListId]);
+
+        // If there are no lists, then set the listId to undefined and go to create
+        if (!allListsLoading && allListsCalled && !allListsData.length) {
+            setListId(undefined);
+            router.replace('/list/create');
+        }
+    }, [listId, pageListId, setListId]);
+
+    useEffect(() => {
+        if (!allListsLoading && allListsCalled) {
+            if (allListsData.length) {
+                if (pageKey !== 'create') {
+                    if (listId && !pageListId && pageKey) {
+                        router.replace(`/list/${pageKey}/${listId}`);
+                    }
+
+                    if (!pageKey && listId) {
+                        router.replace(`/list/edit/${listId}`);
+                    }
+                }
+                // pageKey, pageListId
+            }
+        }
+    }, [allListsCalled, allListsData, allListsLoading]);
 
     function isDisabled({ownerOnly} = {}) {
         let disabled = true;

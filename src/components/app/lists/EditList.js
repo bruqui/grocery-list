@@ -12,8 +12,12 @@ import Button from 'components/core/Button';
 import IconButton from 'components/core/IconButton';
 import Switch from 'components/core/Switch';
 
+// layout
+import SimpleRecordGrid from 'components/layout/SimpleRecordGrid';
+
 // app
 import AddItemForm from 'components/app/items/AddItemForm';
+import ItemNeedSwitch from 'components/app/items/ItemNeedSwitch';
 
 import './EditList.scss';
 
@@ -78,20 +82,9 @@ export default function EditList({children, className}) {
 
     useGlobalLoading('deleteItemLoading', deleteItemLoading);
     useGlobalLoading('deleteListLoading', deleteListLoading);
-    useGlobalLoading('updateItemLoading', updateItemLoading);
     useGlobalLoading('updateListLoading', updateListLoading);
 
     const {collaborated} = listData || {};
-
-    function handleNeedClick(event) {
-        updateItemMutation({
-            variables: {
-                itemId: event.currentTarget.value,
-                need: !!event.currentTarget.checked,
-                purchased: false,
-            },
-        });
-    }
 
     function handleCollaborateClick(event) {
         updateListMutation({
@@ -107,6 +100,30 @@ export default function EditList({children, className}) {
         return () => {
             deleteItemMutation({variables: {itemId}});
         };
+    }
+
+    function renderRow({id: itemId, need, name}) {
+        return (
+            <React.Fragment key={itemId}>
+                <div>
+                    <ItemNeedSwitch
+                        itemId={itemId}
+                        label={name}
+                        need={need}
+                        updateItemLoading={updateItemLoading}
+                        updateItemMutation={updateItemMutation}
+                    />
+                </div>
+                <div className={getClass('li-edge')}>
+                    {/* <IconButton icon="edit" disabled={isDisabled()} /> */}
+                    <IconButton
+                        icon="delete"
+                        disabled={isDisabled({ownerOnly: true})}
+                        onClick={handleDeleteItemClick(itemId)}
+                    />
+                </div>
+            </React.Fragment>
+        );
     }
 
     return (
@@ -130,30 +147,7 @@ export default function EditList({children, className}) {
                 </Button>
             </div>
             <AddItemForm />
-            <ul className={getClass('ul')}>
-                {itemsData.map(({id: itemId, name, need}) => (
-                    <li key={itemId} className={getClass('li')}>
-                        <div className={getClass('li-edge')}>
-                            <Switch
-                                name={`need_${itemId}`}
-                                checked={need}
-                                disabled={isDisabled()}
-                                onClick={handleNeedClick}
-                                value={itemId}
-                            />
-                        </div>
-                        <div className={getClass('li-center')}>{name}</div>
-                        <div className={getClass('li-edge')}>
-                            {/* <IconButton icon="edit" disabled={isDisabled()} /> */}
-                            <IconButton
-                                icon="delete"
-                                disabled={isDisabled({ownerOnly: true})}
-                                onClick={handleDeleteItemClick(itemId)}
-                            />
-                        </div>
-                    </li>
-                ))}
-            </ul>
+            <SimpleRecordGrid records={itemsData} renderRow={renderRow} />
         </div>
     );
 }

@@ -23,8 +23,8 @@ export default function HeaderNav({className}) {
             to: '/',
         },
         {
-            display: 'user groups',
-            to: '/user-groups',
+            display: 'connections',
+            to: '/user-connections',
         },
     ];
 
@@ -36,7 +36,7 @@ export default function HeaderNav({className}) {
     function renderLink({authenticated, display, to}) {
         const link = (
             <ListItem key={display} selected={selected}>
-                <ListLink getIsActive={handleIsActive} to={to}>
+                <ListLink getIsActive={handleIsActive} href={to}>
                     {display}
                 </ListLink>
             </ListItem>

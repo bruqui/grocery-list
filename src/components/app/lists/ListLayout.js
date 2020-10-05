@@ -49,7 +49,7 @@ const tabs = [
     {icon: 'assignment_turned_in', label: 'Complete', path: '/complete'},
     {icon: 'edit', label: 'Edit', path: '/edit', title: 'Edit'},
     {icon: 'share', label: 'Share', path: '/share'},
-    {icon: 'add', label: 'Create', path: '/'},
+    {icon: 'add', label: 'Create', path: '/create'},
 ];
 
 export default function ListLayout({className}) {
@@ -61,10 +61,10 @@ export default function ListLayout({className}) {
 
     function handleTabInteraction({detail: {tabId}}) {
         const tabKey = tabId.replace('tab-', '');
-        const pathPrefix = tabKey === 'Create' || !listId ? '' : `/list/${listId}`;
+        const pathSuffix = tabKey === 'Create' || !listId ? '' : listId;
         const {path} = listId ? tabs.find(({label}) => label === tabKey) : tabs[3];
 
-        router.push(`${pathPrefix}${path}`);
+        router.push(`list/${path}/${pathSuffix}`);
     }
 
     return (

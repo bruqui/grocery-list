@@ -1,0 +1,31 @@
+@import '_base';
+
+.simple-record-grid {
+    border-bottom: 1px solid #ececec;
+    margin: 0;
+
+    &__row {
+        align-items: center;
+        border-top: 1px solid #ececec;
+        column-gap: $gutter;
+        display: grid;
+        grid-template-columns: 3fr auto;
+        justify-items: start;
+        margin: 0;
+        padding: 2px;
+
+        div:last-child {
+            justify-self: end;
+        }
+
+        div:first-child {
+            justify-self: start;
+        }
+    }
+
+    &--three-col {
+        .simple-record-grid {
+            grid-template-columns: 1fr 8fr 1fr;
+        }
+    }
+}

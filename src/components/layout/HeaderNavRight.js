@@ -27,10 +27,10 @@ export default function HeaderNavRight({className}) {
     function renderLogin() {
         return (
             <div className={getChildClass('links')}>
-                <Link to="/login" className={linkClassName} onPrimary>
+                <Link href="/login" className={linkClassName} onPrimary>
                     log in
                 </Link>
-                <Link to="/register" className={linkClassName} onPrimary>
+                <Link href="/register" className={linkClassName} onPrimary>
                     sign up
                 </Link>
             </div>
@@ -56,12 +56,12 @@ export default function HeaderNavRight({className}) {
             >
                 <ListItem disabled>logged in as {name || ''}</ListItem>
                 <ListItem>
-                    <ListLink className={linkClassName} onClick={handleLogout}>
+                    <ListLink className={linkClassName} onClick={handleLogout} href="/">
                         Logout
                     </ListLink>
                 </ListItem>
                 <ListItem>
-                    <ListLink className={linkClassName} to="/account-profile">
+                    <ListLink className={linkClassName} href="/account-profile">
                         Profile
                     </ListLink>
                 </ListItem>

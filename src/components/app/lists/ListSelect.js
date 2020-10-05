@@ -54,7 +54,7 @@ export default function ListSelect({className, selectValue, setSelectedListId, u
             <ListItem key={listId} activated={listId === listData.id}>
                 <ListLink
                     className={getChildClass('list-link')}
-                    to={`/list/${listId}/edit`}
+                    href={`/list/edit/${listId}`}
                 >
                     <div>{linkName}</div>
                     <div>

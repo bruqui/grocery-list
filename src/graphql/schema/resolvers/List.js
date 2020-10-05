@@ -47,6 +47,10 @@ export const listResolvers = {
                     id
                     name
                 }
+                sharedWith {
+                    id
+                    name
+                }
             }`);
 
             return listsData;

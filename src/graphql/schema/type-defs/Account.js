@@ -5,10 +5,9 @@ export const AccountDefs = `
         userByAuth: User @isAuthenticated
         usersByList(listId: String!): [User]!
         allUsers(input: AllUsersInput): [User!]! @isAuthenticated
-        sharedUsers(listId: String!): [User]! @isAuthenticated
-        groupsWithUsers: [UserGroup]
-        userGroup(groupId: String!): UserGroup!
-        userGroupInvite(inviteId: String!): UserGroupInvite!
+        invites: [UserInvite]! @isAuthenticated
+        userInvite(inviteId: String!): UserInvite @isAuthenticated
+        userConnections: User @isAuthenticated
     }
     extend type Mutation {
         login(email: String!, password: String!): LoginResponse!
@@ -18,13 +17,10 @@ export const AccountDefs = `
         deleteUser(id: ID!): User! @isAuthenticated
         updateUser(input: UserUpdateInput!, where: UserWhereUniqueInput!): User! @isAuthenticated
         updatePassword(id: ID!, password: String!): User! @isAuthenticated
-        createUserGroup(name: String!): UserGroup!
-        deleteUserGroup(groupId: String!): UserGroup!
-        inviteUser(groupId: String!, groupName: String!, email: String!): UserGroupInvite!
-        joinGroup(inviteId: String!, accept: Boolean!): UserGroup!
-        unjoinGroup(groupId: String!): UserGroup!
-        deleteInvite(inviteId: String!): UserGroupInvite!
-        deleteUserFromGroup(groupId: String!, userId: String!): UserGroup!
+        inviteUser(email: String!): UserInvite! @isAuthenticated
+        deleteInvite(inviteId: String!): UserInvite! @isAuthenticated
+        acceptInvite(inviteId: String!): [User]! @isAuthenticated
+        deleteConnection(connectionUserId: String!): [User]!
     }
     type User {
         id: ID!
@@ -32,24 +28,19 @@ export const AccountDefs = `
         email: String!
         name: String!
         updatedAt: String!
-        myGroups: [UserGroup]
+        connections: [User]
+        invites: [UserInvite]
     }
-    type UserGroup{
+    type UserSession {
         id: ID!
         createdAt: String!
-        name: String!
-        updatedAt: String!
-        users: [User]
-        owner: User!
-        invites: [UserGroupInvite]
-        owned: Boolean
+        ttl: Int!
+        user: User!
     }
-    type UserGroupInvite {
+    type UserInvite {
         id: ID!
-        createdAt: String!
         email: String!
-        updatedAt: String!
-        userGroup: UserGroup!
+        owner: User!
     }
     type LoginResponse {
         accessToken: String!

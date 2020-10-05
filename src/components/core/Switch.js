@@ -4,6 +4,9 @@ import {Switch as MdcSwitch} from '@rmwc/switch';
 
 import getClassName from 'tools/getClassName';
 
+// core
+import LoadingSpinner from 'components/core/LoadingSpinner';
+
 import './Switch.scss';
 
 export default function Switch({
@@ -12,6 +15,7 @@ export default function Switch({
     inputClassName,
     inputRef,
     label,
+    loading,
     name,
     onChange,
     rootProps,
@@ -19,7 +23,7 @@ export default function Switch({
     ...props
 }) {
     const [inputValue, setInputValue] = useState(value);
-    const [rootClassName] = getClassName({
+    const [rootClassName, getChildClass] = getClassName({
         className,
         modifiers: {
             'full-width': fullWidth,
@@ -33,15 +37,17 @@ export default function Switch({
     }
 
     return (
-        <MdcSwitch
-            {...props}
-            className={rootClassName}
-            inputRef={inputRef}
-            label={label}
-            name={name}
-            onChange={handleChange}
-            value={inputValue}
-        />
+        <div className={rootClassName}>
+            {loading && <LoadingSpinner className={getChildClass('spinner')} />}
+            <MdcSwitch
+                {...props}
+                inputRef={inputRef}
+                label={label}
+                name={name}
+                onChange={handleChange}
+                value={inputValue}
+            />
+        </div>
     );
 }
 
@@ -61,6 +67,8 @@ Switch.propTypes = {
         the special label made for the Switch component.
     */
     label: PropTypes.string,
+    /** Shows a loading spinner when true */
+    loading: PropTypes.bool,
     onChange: PropTypes.func,
     name: PropTypes.string.isRequired,
     /** By default, props spread to the input. These props are for the component's root container. */
